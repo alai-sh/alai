@@ -110,7 +110,9 @@ How it is installed depends on what the directory holds:
 - **A collection's source** (with a `galaxy.yml`): the collection is built,
   and the result copied into the collections directory, so what
   `galaxy.yml` leaves out of a build, such as `notes.txt` above, isn't
-  copied.
+  copied. While this internal build will respect the `build_ignore` value in
+  the `galaxy.yml` it does not support the `manifest` option and hidden
+  directories at the root of the collections will be left out.
 - **A built collection** (with a `MANIFEST.json`): the directory is already
   considered built and is copied as is.
 

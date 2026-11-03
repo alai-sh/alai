@@ -547,19 +547,35 @@ user docs say the copy may change.
 
 What it does:
 
-- **The files**: with `build_ignore`, `_build_files_manifest_walk`'s
-  defaults (`MANIFEST.json`, `FILES.json`, `galaxy.yml`, `galaxy.yaml`,
-  `.git`, `*.pyc`, `*.retry`, `tests/output`, `<ns>-<name>-*.tar.gz`, and
-  the directories `CVS`, `.bzr`, `.hg`, `.git`, `.svn`, `__pycache__`,
-  `.tox`) plus its patterns, matched with `fnmatch` on the relative path;
+- **The files**: `_build_files_manifest_walk`'s defaults (`MANIFEST.json`,
+  `FILES.json`, `galaxy.yml`, `galaxy.yaml`, `.git`, `*.pyc`, `*.retry`,
+  `tests/output`, `<ns>-<name>-*.tar.gz`, and the directories `CVS`,
+  `.bzr`, `.hg`, `.git`, `.svn`, `__pycache__`, `.tox`) plus
+  `build_ignore`'s patterns, matched with `fnmatch` on the relative path;
   a directory link inside the collection listed but not walked, one leading
-  outside skipped with a warning. With `manifest`, the same default
-  directives and distlib's `Manifest`, as `_build_files_manifest_distlib`
-  uses it, which needs distlib (added as a dependency, 2026-10-22, imported
-  only then). The plugin directories its defaults name come from
-  ansible-core's loaders and `DOCUMENTABLE_PLUGINS`, worked out once and
-  written down (`_DOCUMENTABLE`). The two keys together are an error, as in
-  ansible-galaxy.
+  outside skipped with a warning.
+- **Hidden directories at the root are skipped** (decided with the user,
+  2026-11-04), where ansible-galaxy's walk keeps them. Of the 4,576 latest
+  Galaxy collections, 1,699 root dot directories across 81 names were all
+  tooling: CI (`.github` in 989, `.gitlab`, `.zuul.d`), editors
+  (`.vscode`, `.idea`, `.nova`), caches and environments (`.pytest_cache`,
+  `.venv`, `.ansible`, where ansible-lint and molecule install
+  collections). Ansible only loads a collection from its fixed root
+  directories. The one loss is `.reuse` (2 collections), licence metadata
+  the default directives keep. Hidden files and hidden directories deeper
+  down stay, as roles ship dotfiles as content. The user docs say alai
+  differs here.
+- **`manifest` is ignored** (decided with the user, 2026-11-04). Its
+  distlib directives were supported until then, but they lock in
+  ansible-galaxy's default directive list and needed distlib. Only 62 of
+  the 4,576 latest Galaxy collections were built with them (counted by the
+  `.` that distlib lists twice in `FILES.json`), and the cost of ignoring
+  it is extra files in a local install, not missing ones. Setting both
+  keys isn't an error either.
+  Skipping every hidden directory, as the directives' defaults do, was
+  considered and rejected: the same scan found dotfile trees collections
+  ship as role content (`roles/*/files/home/.config`, `templates/.ssh`,
+  `extensions/molecule/.config`).
 - **`MANIFEST.json` and `FILES.json`** as `_build_manifest` writes them:
   `galaxy.yml` normalised as `_normalize_galaxy_yml_manifest` does (lists
   for list keys, `{}` for `dependencies`, None for the rest),
@@ -593,16 +609,12 @@ for its time-free checksum of `FILES.json`):
   directory) and outside it (relative and absolute, one to an executable):
   the same. A link that climbed out of the collection by mistake failed in
   both, with the same path.
-- `collection install <dir>`, for one source using `manifest` directives
-  and one using `build_ignore`, with an executable, `.git` and `docs/`: the
-  same files and manifests, which the build shares (this was before the
-  symlinks followed the build).
+- `collection install <dir>`, for a source using `build_ignore`, with an
+  executable, `.git` and `docs/`: the same files and manifests, which the
+  build shares (this was before the symlinks followed the build).
 
-Kept as ansible-galaxy has them: with `manifest`, `FILES.json` lists `.`
-twice, as distlib returns the collection's own directory, and a symlinked
-file isn't included at all, as distlib only collects regular files. 2.21.5
-lists `FILES.json` in directory order; devel sorts it by name, which alai
-does.
+2.21.5 lists `FILES.json` in directory order; devel sorts it by name, which
+alai does.
 
 ### When a copy is made again
 

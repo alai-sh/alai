@@ -37,9 +37,6 @@ project are:
 
 ### Python
 
-- **[distlib](https://github.com/pypa/distlib)** applies the `manifest`
-  directives in `galaxy.yml` when installing a collection from its source
-  directory, as `ansible-galaxy` does.
 - **[argcomplete](https://kislyuk.github.io/argcomplete/)** provides
   [shell completion](shell-completion.md).
 
