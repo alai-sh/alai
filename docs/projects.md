@@ -1,3 +1,7 @@
+---
+description: What an alai project is and where its collections are installed.
+---
+
 # Projects
 
 Most alai commands revolve around a single setup, which it calls a "project".

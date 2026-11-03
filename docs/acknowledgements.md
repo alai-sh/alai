@@ -1,3 +1,7 @@
+---
+description: The projects alai takes ideas from and is built on.
+---
+
 # Acknowledgements
 
 alai borrows ideas from a number of projects, and is built on others. If

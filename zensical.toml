@@ -76,3 +76,7 @@ attr_list = {}
 toc.permalink = true
 pymdownx.highlight = {}
 pymdownx.superfences = {}
+
+# The Open Graph tags and a card image per page, for link previews in Discord,
+# Slack and the like. Fetches its font on the first build into .cache/.
+[project.plugins.social]

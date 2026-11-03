@@ -1,3 +1,7 @@
+---
+description: Describes alai.toml and the settings and configuration it can contain.
+---
+
 # alai.toml
 
 `alai.toml` marks a project, declares what it needs, and holds alai's

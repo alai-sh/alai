@@ -1,3 +1,7 @@
+---
+description: How to find which collection has a module or plugin.
+---
+
 # Finding plugins
 
 `alai find` answers "which collection has this?" for a module, plugin,

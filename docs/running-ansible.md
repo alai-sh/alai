@@ -1,3 +1,7 @@
+---
+description: How to run Ansible with only the project's collections.
+---
+
 # Running Ansible
 
 Ansible looks for collections in `~/.ansible/collections` and the paths in

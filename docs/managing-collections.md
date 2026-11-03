@@ -1,3 +1,7 @@
+---
+description: How to add, lock and install a project's collections.
+---
+
 # Managing collections
 
 A project's collections are managed with four commands:

@@ -63,6 +63,14 @@
   with a class from `docs/assets/ansi.css`, `` `✓`{ .ansi-green } ``, in
   the recordings' palette, the same trade as the recordings: a generator
   without `attr_list` would show `{ .ansi-green }` as text.
+- **Link previews from Zensical's social plugin** (asked for 2026-11-04):
+  Open Graph tags and a card image per page, for Discord, Slack and the
+  like; alai.sh's `zensical.toml` turns it on too. Every page but
+  `index.md`, which uses `site_description`, has a one-sentence
+  `description` in its front matter, plain text under about 150
+  characters, as it's also the search snippet. `cli.md`'s comes from
+  `HEADER` in `scripts/cli_reference.py`. A page without one falls back to
+  `site_description` silently.
 - **Deployed to GitHub Pages on every push to `main`** that could change the
   docs (`.github/workflows/docs.yml`), not tied to a release. This is fine
   while alai is pre-release. At the first real release, decide whether docs
