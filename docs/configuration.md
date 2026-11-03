@@ -1,3 +1,7 @@
+---
+description: Where alai reads its settings from and which one wins.
+---
+
 # Configuration
 
 alai reads settings from the command line, environment variables and

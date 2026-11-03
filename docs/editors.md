@@ -1,3 +1,7 @@
+---
+description: How to set up an editor to run and debug Ansible with alai.
+---
+
 # Editors
 
 This page covers how to set up an editor to run and debug Ansible against a

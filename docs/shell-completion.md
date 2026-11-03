@@ -1,3 +1,7 @@
+---
+description: How to set up completion of alai's commands in your shell.
+---
+
 # Shell completion
 
 alai can complete its commands and options in bash, zsh, fish, PowerShell

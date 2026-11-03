@@ -1,3 +1,7 @@
+---
+description: How alai finds collections through an index.
+---
+
 # Indexes
 
 !!! warning "Still in flux"

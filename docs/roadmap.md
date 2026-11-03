@@ -1,3 +1,7 @@
+---
+description: What's planned for alai but doesn't work yet.
+---
+
 # Roadmap
 
 !!! warning "Plans, not features"

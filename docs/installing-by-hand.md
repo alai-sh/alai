@@ -1,3 +1,7 @@
+---
+description: How to manually install and uninstall collections without recording them in the project.
+---
+
 # Installing by hand
 
 The project commands, such as `alai add` and `alai sync`, record what's

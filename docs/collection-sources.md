@@ -1,3 +1,7 @@
+---
+description: The sources alai can install collections from.
+---
+
 # Collection sources
 
 A collection's source is where alai gets the collection from. Most

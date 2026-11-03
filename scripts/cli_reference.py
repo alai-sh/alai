@@ -28,6 +28,10 @@ DOCS = pathlib.Path("docs")
 GLOBAL = "global options"
 
 HEADER = """\
+---
+description: Every alai command and the options it takes.
+---
+
 <!-- Written by scripts/cli_reference.py from alai's argument parser: edit the help there, not here. -->
 
 # CLI reference

@@ -1,3 +1,7 @@
+---
+description: How to move a project from ansible-galaxy to alai.
+---
+
 # Coming from ansible-galaxy
 
 alai is designed to replace `ansible-galaxy collection install` and provide a
