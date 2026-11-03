@@ -68,14 +68,14 @@ The recommended method is to install alai as a tool using
 not been officially published, this is done by targeting the git repo.
 
 ```console
-$ uv tool install https://github.com/alai-sh/alai-cli/archive/refs/heads/main.tar.gz
+$ uv tool install https://github.com/alai-sh/alai/archive/refs/heads/main.tar.gz
 ```
 
 uv puts the `alai` command on your `PATH`, in an environment of its own,
 and finds or downloads a Python 3.10 or later for it. To update to the
 latest source, run the same command with `--reinstall`; `uv tool upgrade`
 will not update it, as it does not look for new commits.
-`uv tool uninstall alai` removes it.
+`uv tool uninstall alai-sh` removes it.
 
 It is possible to install alai using any other Python package installer, but
 `uv` is recommended as it keeps the environment isolated and puts `alai` on
@@ -89,9 +89,10 @@ so.
 !!! note "Until alai is on PyPI"
 
     Installing from GitHub is temporary. Once alai is published on PyPI,
-    `uv tool install alai` will install it, and `uv tool upgrade alai`
-    will update it. The PyPI release will be a ready-built wheel that is
-    compatible with most Linux and macOS systems and will not require Rust.
+    `uv tool install alai-sh` will install it, and `uv tool upgrade alai-sh`
+    will update it. The PyPI release will be a ready-built wheel
+    that is compatible with most Linux and macOS systems and will not require
+    Rust.
 
 ## A quick look
 

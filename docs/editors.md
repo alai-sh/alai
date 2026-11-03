@@ -9,7 +9,7 @@ project's collections.
     Python's debugger, ansible-core, ansible-test and alai, so it's a
     complex area. What's here should work, but don't be surprised if
     something doesn't. Please report any problems in the
-    [issue tracker](https://github.com/alai-sh/alai-cli/issues), so the
+    [issue tracker](https://github.com/alai-sh/alai/issues), so the
     docs can cover them and alai can fix what it can.
 
 When an editor runs or debugs Ansible, it needs to set the same

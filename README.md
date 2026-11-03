@@ -25,8 +25,8 @@ same collections, and installs them in a fraction of the time
 `ansible-galaxy` takes.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/alai-sh/alai-cli/main/docs/assets/casts/galaxy-comparison-dark.svg">
-  <img alt="ansible-galaxy and alai each installing community.general with nothing cached, played side by side from the same start: alai finishes and installs it again into another project while ansible-galaxy is still running" src="https://raw.githubusercontent.com/alai-sh/alai-cli/main/docs/assets/casts/galaxy-comparison-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/alai-sh/alai/main/docs/assets/casts/galaxy-comparison-dark.svg">
+  <img alt="ansible-galaxy and alai each installing community.general with nothing cached, played side by side from the same start: alai finishes and installs it again into another project while ansible-galaxy is still running" src="https://raw.githubusercontent.com/alai-sh/alai/main/docs/assets/casts/galaxy-comparison-light.svg">
 </picture>
 
 **Documentation: <https://docs.alai.sh/>**
@@ -68,14 +68,14 @@ Install alai with [uv](https://docs.astral.sh/uv/getting-started/installation/),
 from the latest source on GitHub:
 
 ```console
-$ uv tool install https://github.com/alai-sh/alai-cli/archive/refs/heads/main.tar.gz
+$ uv tool install https://github.com/alai-sh/alai/archive/refs/heads/main.tar.gz
 ```
 
 Run the same command with `--reinstall` to update; `uv tool upgrade` won't,
 as it doesn't look for new commits. Part of alai is written in
 Rust, so installing from source needs Rust 1.92 or later, with `cargo` on your
 `PATH` ([rustup](https://rustup.rs/) installs it). This is temporary: once
-alai is published on PyPI, it will be `uv tool install alai`, from a
+alai is published on PyPI, it will be `uv tool install alai-sh`, from a
 ready-built wheel on most Linux and macOS systems.
 
 ## Getting started
@@ -150,8 +150,8 @@ project over and the differences you may run into.
   alai is inspired by and built on.
 
 Bugs and ideas are welcome in the
-[issue tracker](https://github.com/alai-sh/alai-cli/issues).
+[issue tracker](https://github.com/alai-sh/alai/issues).
 
 ## License
 
-MIT; see [LICENSE](https://github.com/alai-sh/alai-cli/blob/main/LICENSE).
+MIT; see [LICENSE](https://github.com/alai-sh/alai/blob/main/LICENSE).

@@ -6,8 +6,8 @@
 site_name = "alai"
 site_description = "A fast package and environment manager for Ansible collections."
 site_url = "https://docs.alai.sh/"
-repo_url = "https://github.com/alai-sh/alai-cli"
-repo_name = "alai-sh/alai-cli"
+repo_url = "https://github.com/alai-sh/alai"
+repo_name = "alai-sh/alai"
 copyright = "Copyright &copy; 2026 Jordan Borean"
 
 nav = [

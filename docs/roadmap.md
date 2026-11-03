@@ -5,7 +5,7 @@
     Nothing on this page works yet. The rest of the documentation describes
     what alai does today; this page is what's planned, in no particular
     order, and any of it may change. Feedback on any of it is welcome in the
-    [issue tracker](https://github.com/alai-sh/alai-cli/issues).
+    [issue tracker](https://github.com/alai-sh/alai/issues).
 
 ## Planned
 

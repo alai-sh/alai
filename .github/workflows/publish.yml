@@ -1,8 +1,6 @@
 name: Alai CLI Publish
 
-# Publishing a draft release, which ci.yml makes for a version tag with the sdist and wheels as its assets, publishes
-# those same files to PyPI, once each is shown to have been built by ci.yml from the tag. The release is then
-# immutable, so what's on PyPI is what's attached to it.
+# Publishes the assets of the release ci.yml drafted for a tag.
 on:
   release:
     types:
@@ -17,7 +15,7 @@ jobs:
     runs-on: ubuntu-26.04
     environment:
       name: pypi
-      url: https://pypi.org/project/alai/${{ steps.download.outputs.version }}/
+      url: https://pypi.org/project/alai-sh/${{ steps.download.outputs.version }}/
     permissions:
       contents: read  # Download the release assets
       attestations: read  # Verify the assets' build provenance
@@ -32,13 +30,12 @@ jobs:
           gh release download "$TAG" --pattern '*.tar.gz' --pattern '*.whl' --dir dist --repo "$GITHUB_REPOSITORY"
           ls dist
 
-          # The version, in its PEP 440 form, for the environment's URL, from alai-<version>.tar.gz.
-          sdist=(dist/alai-*.tar.gz)
-          version="${sdist[0]#dist/alai-}"
+          # The version, in its PEP 440 form, for the environment's URL, from alai_sh-<version>.tar.gz.
+          sdist=(dist/alai_sh-*.tar.gz)
+          version="${sdist[0]#dist/alai_sh-}"
           echo "version=${version%.tar.gz}" >> "$GITHUB_OUTPUT"
 
-      # Anyone who can write to the repository can upload files to a release, or to ci.yml's draft before it's
-      # published, so only publish files that ci.yml built from this tag, as its attestations show.
+      # Anyone with write access can add files to a release, so only publish what ci.yml built from this tag.
       - name: Verify the sdist and wheels were built by ci.yml from the tag
         env:
           GH_TOKEN: ${{ github.token }}
@@ -53,6 +50,5 @@ jobs:
               --deny-self-hosted-runners
           done
 
-      # The sdist and every wheel, published in one step, so no one installs between them and builds from source.
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3

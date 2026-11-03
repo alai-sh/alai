@@ -22,7 +22,7 @@ fills in the details.
   ([environments.md](environments.md)) stays possible later but isn't
   planned.
 - **alai doesn't share Ansible's environment.** The expected install is as
-  a tool (`uv tool install alai`, pipx), in its own environment, though
+  a tool (`uv tool install alai-sh`, pipx), in its own environment, though
   installing it next to Ansible must work too. So alai never imports
   ansible-core, and leaves [checking its version](#checking-ansible-core)
   to ansible-core.
