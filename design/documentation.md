@@ -12,12 +12,15 @@
   when it's built.
 - **The landing page installs from GitHub until alai is on PyPI** (asked
   for 2026-10-21): `uv tool install` of the `main` branch's archive,
-  `https://github.com/alai-sh/alai-cli/archive/refs/heads/main.tar.gz`,
+  `https://github.com/alai-sh/alai/archive/refs/heads/main.tar.gz`,
   under a note that it's temporary. Tried with uv 0.13.0 on 2026-10-21:
   it installed and ran, but `uv tool upgrade alai` said "Nothing to
   upgrade" for a URL source, so the page says to update with `--reinstall`.
-  At the first PyPI release, replace both with `uv tool install alai` and
-  `uv tool upgrade alai`, and drop the note, here and in `README.md`.
+  At the first PyPI release, replace both with `uv tool install alai-sh` and
+  `uv tool upgrade alai-sh`, and drop the note, here and in `README.md`.
+  The PyPI name is `alai-sh` as `alai` is too similar to an existing name
+  (2026-11-04); the command stays `alai`, so say `uvx --from alai-sh alai`
+  for a one-off run, not a second `alai-sh` command.
 - **`README.md` is a short landing page** (asked for 2026-10-21): what alai
   is, the preview warning and the landing page's note on how alai is made
   (2026-10-26), why, installing, a first project with real output, common

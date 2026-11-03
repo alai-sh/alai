@@ -36,7 +36,7 @@ def isolated(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 def test_version(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["--version"]) == 0
-    assert capsys.readouterr().out == f"alai {version('alai')}\n"
+    assert capsys.readouterr().out == f"alai {version('alai-sh')}\n"
 
 
 @pytest.mark.parametrize("argv", [[], ["config"]])
@@ -306,7 +306,7 @@ with open({out!r}, "w") as fd:
     ("argv", "setup"),
     [
         # --version is meant to load importlib.metadata, so the probe loads it first and checks what's left.
-        (["--version"], "import importlib.metadata; importlib.metadata.version('alai')"),
+        (["--version"], "import importlib.metadata; importlib.metadata.version('alai-sh')"),
         (["config", "show"], ""),
     ],
 )

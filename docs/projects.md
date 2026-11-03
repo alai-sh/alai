@@ -154,7 +154,7 @@ same tree. It doesn't add a second `ansible_collections/` level.
     The mechanism alai uses to set up a collection project and its collection
     dependencies may not work with some tools. The aim is to ensure this
     project structure works, but if there are any problems, please report the
-    details to the [issue tracker](https://github.com/alai-sh/alai-cli/issues).
+    details to the [issue tracker](https://github.com/alai-sh/alai/issues).
 
 A typical collection project looks like:
 

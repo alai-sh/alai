@@ -828,8 +828,8 @@ what's left is installing, by clone ([Cloning](#cloning)).
   - Maybe the crates vendored into the sdist, for offline builds, and a
     lighter release profile there than link-time optimisation with one
     codegen unit, which is slow on a Raspberry Pi or under emulation.
-  - Documenting `pip install --only-binary alai` and
-    `uv tool install --no-build-package alai alai` for failing rather than
+  - Documenting `pip install --only-binary alai-sh` and
+    `uv tool install --no-build-package alai-sh alai-sh` for failing rather than
     building.
 - **CI** (`.github/workflows/ci.yml`, 2026-10-22):
   - Sanity runs `cargo fmt` and `clippy` with the rest; a job checks the
@@ -874,8 +874,8 @@ what's left is installing, by clone ([Cloning](#cloning)).
     with Sigstore through the run's identity, stored in the repository's
     attestations by the file's SHA-256), so a wheel from anywhere can be
     checked as built by `ci.yml` from the tag, with `gh attestation verify
-    <file> --repo alai-sh/alai-cli --signer-workflow
-    alai-sh/alai-cli/.github/workflows/ci.yml --source-ref
+    <file> --repo alai-sh/alai --signer-workflow
+    alai-sh/alai/.github/workflows/ci.yml --source-ref
     refs/tags/<tag>`. With the first release, the install docs get a short
     section on it, and that it works on a file from PyPI too, as
     attestations are keyed by the file's SHA-256; not before, as `docs/`
