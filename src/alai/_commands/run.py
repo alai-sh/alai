@@ -27,9 +27,9 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
     parser = commands.add_parser(
         "run",
         help="run a command, such as ansible-playbook, with the project's collections",
-        description="Install what alai.lock lists, locking first if needed, as alai sync does, then run COMMAND with "
-        + "Ansible loading collections from the project's collections directory and nowhere else. Collections there "
-        + "that alai.lock doesn't list are kept, with a warning unless --inexact is given, or removed with --exact. "
+        description="Lock and install what alai.lock lists as alai sync does, then run COMMAND with Ansible loading "
+        + "collections from the project's collections directory and nowhere else. Collections there that alai.lock "
+        + "doesn't list are kept with a warning. --inexact keeps them without the warning, and --exact removes them. "
         + "Everything after COMMAND is passed to it.",
         formatter_class=HelpFormatter,
     )

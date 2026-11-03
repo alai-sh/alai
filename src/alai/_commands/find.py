@@ -39,11 +39,10 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
     find = commands.add_parser(
         "find",
         help="find which collections have a plugin, role or playbook",
-        description="Find plugins, roles and playbooks by name in the installed collections, read from their files, "
-        + "and in the indexes' plugin lists, with the ones in installed collections and ansible.builtin first. QUERY "
-        + "is part of a name (user finds win_user too), a glob "
-        + "('*_info', 'community.general.*'), or a FQCN, which shows that plugin's details: where its redirects "
-        + "lead, and how to install it.",
+        description="Find plugins, roles and playbooks by name in the files of the installed collections and in the "
+        + "indexes' plugin lists. The ones in installed collections and ansible.builtin are listed first. QUERY is "
+        + "part of a name (user finds win_user too), a glob ('*_info', 'community.general.*') or a FQCN. A FQCN shows "
+        + "that plugin's details, such as where its redirects lead and how to install it.",
         formatter_class=HelpFormatter,
     )
     find.add_argument("query", metavar="QUERY", help="part of a name, a glob, or a FQCN")
@@ -54,8 +53,8 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
         dest="types",
         action="append",
         default=[],
-        help="only this type, as ansible-doc -t names them (module, filter, lookup...), or role or playbook; can be "
-        + "repeated",
+        help="only this type, as ansible-doc -t names them (module, filter, lookup...) or role or playbook "
+        + "(can be repeated)",
     )
     # Offered by Tab completion but not enforced: the index can add types without a format change.
     types.suggestions = PLUGIN_TYPES  # pyright: ignore[reportAttributeAccessIssue]
@@ -70,8 +69,8 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
         "--all",
         dest="include_all",
         action="store_true",
-        help="list removed plugins and aliases to listed plugins that match part of a name too; ones named exactly "
-        + "always are",
+        help="also list removed plugins and aliases of listed plugins that match part of a name, as ones named "
+        + "exactly always are",
     )
     find.add_argument(
         "--no-index",
@@ -87,8 +86,8 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
         "--limit",
         metavar="N",
         type=_count,
-        help="list at most N matches, installed ones first, 0 for all; 20 on a terminal, all when "
-        + "the output is piped or --output-format is json",
+        help="list at most N matches with installed ones first, or 0 for all. The default is 20 on a terminal, and all "
+        + "when the output is piped or --output-format is json",
     )
     find.add_argument(
         "--output-format",

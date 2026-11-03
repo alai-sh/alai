@@ -1,27 +1,27 @@
 # alai.toml
 
-`alai.toml` is alai's project declaration, settings and/or marker file. The
-file is written in the TOML format and should be placed at the
-[project root](projects.md#finding-the-project-root), or used as a user or
-system config file. [Configuration](configuration.md) covers where each of
-the configuration files is located and how their settings combine with
-project or CLI/environment values.
+`alai.toml` marks a project, declares what it needs, and holds alai's
+settings. The file is TOML, and lives at the
+[project root](projects.md#finding-the-project-root) or is used as a user or
+system config file. [Configuration](configuration.md) covers where each
+config file is found and how its settings combine with flags and environment
+variables.
 
-There is one rule for what can be defined in a project `alai.toml` vs a
-settings/configuration `alai.toml`:
+What a file can hold depends on whether it's the project's own `alai.toml`
+or a config file:
 
-- **Top-level keys and `[[index]]` are settings.** These values define how
-  alai runs. Any `alai.toml` can set them, and each has a command-line
-  flag and an environment variable too.
+- **Top-level keys and `[[index]]` are settings.** Settings define how alai
+  runs, and any `alai.toml` can set them. Each one also has an environment
+  variable, and all but `python_index` have a command-line flag.
 - **`[project]`, and everything under it, describes the project.** Only the
-  project's own `alai.toml` can have it. It cannot be set in the user or
-  system configuration file.
+  project's own `alai.toml` can have `[project]`, never a user or system
+  config file.
 
-Every key declared below is optional, and an empty `alai.toml` can still mark
-the location of a project root. An unknown key, or a value of the wrong type, is an
-error naming the file, so a typo never silently does nothing. Keys are written
-in snake_case, matching their kebab-case CLI options
-(`link_mode`, `--link-mode`).
+Every key below is optional, so an empty `alai.toml` still marks the project
+root. An unknown key or a value of the wrong type is an error naming the
+file, so a typo never silently does nothing. Keys are written in snake_case
+to match their kebab-case CLI options, such as `link_mode` and
+`--link-mode`.
 
 ```toml
 # alai.toml
@@ -92,9 +92,10 @@ kept. The data in this cache is shared by every project.
 
     alai trusts what's in its cache. Anyone who can change it can change
     what alai installs. The default, under your home directory, is only
-    writable by you. A `cache_dir` elsewhere, such as under `/tmp` or a
-    directory shared between users or CI jobs, may be readable and writable
-    by others, and it's up to you to restrict it to the users who need it.
+    writable by you. Others may be able to read and write a `cache_dir`
+    elsewhere, such as under `/tmp` or in a directory shared between users or
+    CI jobs. Restricting that directory to the users who need it is up to
+    you.
 
 ### `link_mode`
 
@@ -114,30 +115,30 @@ How files get from the cache into the
   installed file in place also edits the cached copy (see below).
 - `copy`: an ordinary copy.
 - `symlink`: a link to the cached file, so the installed collection depends
-  on the cache. Clearing the cache breaks it, and so does using it in an
-  execution environment or container, where the cache isn't. It's opt-in
-  only.
+  on the cache. Clearing the cache breaks the installed collection, and so
+  does using it in an execution environment or container that doesn't have
+  the cache. `auto` never picks `symlink`.
 
 !!! warning "Editing installed files with `hardlink` or `symlink`"
 
     With either mode, an installed file is tied to the data in the cache.
     Editing a file in the project's collections directory will also edit the
-    same file in the cache. Every later install of that collection version or
-    existing projects that were installed with `hardlink` or `symlink` will
-    also see those changes. To get a clean copy, delete
+    same file in the cache. Every later install of that collection version
+    sees the changes, and so does every existing project installed with
+    `hardlink` or `symlink`. To get a clean copy, delete
     `<cache_dir>/collections-v1/` and then run
     `alai sync --reinstall-collection NAME`.
 
-    The `clone` and `copy` modes do not share anything with the cache. The `auto`
-    mode tries `clone` first, but on a filesystem without copy-on-write,
-    such as ext4, it falls back to `hardlink`.
+    The `clone` and `copy` modes do not share anything with the cache. The
+    `auto` mode tries `clone` first, but falls back to `hardlink` on a
+    filesystem without copy-on-write such as ext4.
 
 !!! danger "Avoid `symlink`"
 
     A collection installed with `symlink` is linked to the cache directory and
     only stays valid while the cache contains the collection. Clearing the
-    cache breaks every collection installed with `symlink`. It is recommended
-    to use another mode unless you have a reason not to.
+    cache breaks every collection installed with `symlink`. Use another mode
+    unless you have a reason not to.
 
 ### `offline`
 
@@ -149,9 +150,9 @@ How files get from the cache into the
 
 Use only index data and collections alai has already cached, without
 connecting to any index. A command that needs something that isn't in the
-cache fails, saying what it couldn't find. This only applies to indexes over
-`http://` or `https://`. An index given as a `file://` URL is read from disk
-either way.
+cache fails, saying what it couldn't find. Offline mode only applies to
+indexes over `http://` or `https://`, as an index given as a `file://` URL is
+read from disk either way.
 
 ### `python_index`
 
@@ -160,13 +161,13 @@ either way.
 - **Environment variable:** `ALAI_PYTHON_INDEX`
 - **Flag:** none
 
-The Python package index `alai find` reads ansible-core's and
-ansible-rulebook's own plugins from, as `ansible.builtin` and `eda.builtin`:
-the root of a [simple
+The Python package index that `alai find` reads ansible-core's and
+ansible-rulebook's own plugins from, as `ansible.builtin` and `eda.builtin`.
+The URL is the root of a [simple
 index](https://packaging.python.org/en/latest/specifications/simple-repository-api/)
-that serves its JSON form, as PyPI and private indexes such as devpi,
+that serves its JSON form, as PyPI does and private indexes such as devpi,
 Artifactory and Nexus do. alai downloads each project's latest release from
-it and keeps what it reads in the cache. See [Finding
+the index and keeps what it reads in the cache. See [Finding
 plugins](finding-plugins.md#ansible-cores-own-plugins).
 
 ### `[[index]]`
@@ -174,40 +175,40 @@ plugins](finding-plugins.md#ansible-cores-own-plugins).
 !!! warning "Only index.alai.sh is supported"
 
     The index format is still being developed and may change without notice.
-    You can point alai at another index, such as a mirror of
-    `index.alai.sh`, but a future release may stop reading it until it's
-    updated to match the expected behavior.
+    alai can be pointed at another index, such as a mirror of
+    `index.alai.sh`. A future release may stop reading that index until it's
+    updated to match.
 
 - **Type:** array of tables, one per index
-- **Default:** none; the built-in default index, `https://index.alai.sh/`,
+- **Default:** none, and the built-in default index `https://index.alai.sh/`
   is always searched last
 - **Flags:** `--index NAME=URL`, which can be repeated, and
   `--default-index [NAME=]URL`
 - **Environment variables:** `ALAI_INDEX`, holding `NAME=URL` values
   separated by whitespace, and `ALAI_DEFAULT_INDEX`, holding `[NAME=]URL`
 
-An index to resolve collections from. Repeat `[[index]]` to specify multiple
-indexes with the order defined being the priority order. Custom indexes are
-prioritized before the default index.
+An index to resolve collections from. Repeat `[[index]]` for more than one
+index, and they're searched in the order they're written, before the default
+index.
 
 | Key | Type | |
 |---|---|---|
 | `name` | string | Required. The name of the index. Use lowercase letters, digits, `-` and `_`, starting with a letter or digit. `alai` is the default index's name, so an index named `alai` must also set `default = true` |
-| `url` | string | Required. An `http://`, `https://` or `file://` URL of the index root, the directory holding `config.json`, without a query or fragment. A trailing `/` is added if missing |
+| `url` | string | Required. The `http://`, `https://` or `file://` URL of the index root, which is the directory holding `config.json`. The URL can't have a query or fragment, and a trailing `/` is added if missing |
 | `default` | boolean | Optional, default `false`. Makes this index replace the built-in default index |
 
 `--default-index` and `ALAI_DEFAULT_INDEX` replace the default index. Given
 a bare URL, the index keeps the name `alai`, so a mirror of `index.alai.sh`
 set this way still answers `[project.sources]` entries naming `alai`.
 
-See [Configuration](configuration.md#indexes) for more information on how
-the various configuration sources are applied as one final value.
+[Configuration](configuration.md#indexes) covers how the indexes from every
+level are combined into one list.
 
 ### `[tool]`
 
-Never read by alai, at any level. It is left open for other tools and scripts
-to keep their own settings under `[tool.<name>]` without being flagged by
-alai as invalid.
+alai never reads `[tool]` at any level, so other tools and scripts can keep
+their own settings under `[tool.<name>]` without alai flagging them as
+invalid.
 
 ## Project
 
@@ -222,44 +223,43 @@ alai as invalid.
 
 Only `collections_dir` has a CLI flag and an environment variable. The
 remaining options describe only what the project needs, so they can only be
-defined in that project's `alai.toml`. See
-[Managing collections](managing-collections.md) for how a project declares the
-collections it needs.
+defined in that project's `alai.toml`.
+[Managing collections](managing-collections.md) covers how a project declares
+the collections it needs.
 
 ### `project.collections_dir`
 
 - **Type:** string, a [path](configuration.md#paths)
-- **Default:** for a playbook project, `collections` in the project root; in a
-  [collection project](projects.md#collection-project), a
-  directory of its own in the cache
+- **Default:** `collections` in the project root for a playbook project, or
+  a directory of its own in the cache for a
+  [collection project](projects.md#collection-project)
 - **Flag:** `--collections-dir <dir>`
 - **Environment variable:** `ALAI_COLLECTIONS_DIR`
 
-The directory to install the collections for the project into. This directory
-will contain the `ansible_collections/` directory with collections being
-installed at `<collections_dir>/ansible_collections/<namespace>/<name>`. A
+The directory the project's collections are installed into. Each collection
+is installed at `<collections_dir>/ansible_collections/<namespace>/<name>`. A
 value ending in `ansible_collections` is taken as its parent, as Ansible does
-with its collection paths. See
+with its collection paths.
 [Where collections are installed](projects.md#where-collections-are-installed)
-for an example layout.
+shows an example layout.
 
-A relative value in `alai.toml` is relative to where the file is located. One
-from the flag or environment variable is relative to the current directory.
+A relative value in `alai.toml` is relative to the directory holding the
+file. A relative value from the flag or environment variable is relative to
+the current directory.
 
 ### `project.requires_ansible`
 
 - **Type:** string, a PEP 440 version specifier
-- **Default:** none: any ansible-core
+- **Default:** none, so any ansible-core
 
 The ansible-core versions the project targets, as a
 [PEP 440](https://peps.python.org/pep-0440/#version-specifiers) specifier
-such as `>=2.17` or `>=2.17,<2.20`. This is the same syntax as
+such as `>=2.17` or `>=2.17,<2.20`. The syntax is the same as
 `requires_ansible` in a collection's `meta/runtime.yml`.
 
-This currently cannot be set in a
-[collection project](projects.md#collection-project) and will raise
-an error. Instead, collection projects use `meta/runtime.yml` to declare this
-value.
+A [collection project](projects.md#collection-project) declares its
+ansible-core versions in `meta/runtime.yml` instead, and setting
+`project.requires_ansible` there is an error.
 
 ### `project.collections`
 
@@ -269,10 +269,9 @@ value.
 The collections the project needs, as an array of
 [requirements](#requirements).
 
-This currently cannot be set in a
-[collection project](projects.md#collection-project) and will raise
-an error. Instead, collection projects use `galaxy.yml` to declare the
-collection's dependencies.
+A [collection project](projects.md#collection-project) declares its
+dependencies in `galaxy.yml` instead, and setting `project.collections` there
+is an error.
 
 ### `[project.groups.<name>]`
 
@@ -294,8 +293,8 @@ collections by default and the others when asked for. See
 
 ### `[project.overrides]`
 
-Used to override the metadata that may be incorrect in the collections the
-project depends on:
+When a collection the project depends on has wrong metadata,
+`[project.overrides]` replaces it:
 
 ```toml
 [project.overrides]
@@ -308,14 +307,14 @@ ignore_requires_ansible = ["some.collection"]
 | `"<namespace.name>"` | string | A [version requirement](#version-requirements) that replaces every requirement on that collection, including those in other collections' dependencies. `"*"` accepts any version |
 | `ignore_requires_ansible` | array of strings | The names of collections whose own `requires_ansible` is ignored |
 
-As collection names contain a dot, they must be quoted: `"ansible.netcommon" =
-">=6"`.
+Collection names contain a dot, so they must be quoted, as in
+`"ansible.netcommon" = ">=6"`.
 
 ### `[project.sources]`
 
 Where particular collections come from, keyed by collection name.
-[Collection sources](collection-sources.md) has more information around the
-different source types and when they should be used.
+[Collection sources](collection-sources.md) covers each source type and when
+to use it.
 
 ```toml
 [project.sources]
@@ -332,16 +331,16 @@ different source types and when they should be used.
 | Value | |
 |---|---|
 | `{ index = "<name>" }` | Take the collection from the [`[[index]]`](#index) with that name, and only from there |
-| `{ path = "<dir>" }` | Take the collection from a directory holding its `galaxy.yml`, built and copied into the collections directory, or from a directory holding a built collection's `MANIFEST.json`, copied as it is. A relative path is relative to the project root |
+| `{ path = "<dir>" }` | Take the collection from a directory. A directory holding a `galaxy.yml` is built and copied into the collections directory, and one holding a built collection's `MANIFEST.json` is copied as it is. A relative path is relative to the project root |
 | `{ path = "<dir>", editable = true }` | The same, but linked to the directory rather than copied, so edits there take effect without installing again. `editable = false` is the same as leaving it out |
-| `{ path = "<file>" }` | Take the collection from a built collection's tarball on disk, installed as an index's artifact is. A path to a file is a tarball, and a path to a directory a directory. It can't be editable |
+| `{ path = "<file>" }` | Take the collection from a built collection's tarball on disk, installed as an index's artifact is. A path to a file is taken as a tarball, which can't be editable |
 | `{ url = "<url>" }` | Take the collection from a built collection's tarball at an `http` or `https` URL, downloaded when it's locked. For a file, use `path` |
-| `{ git = "<url>" }` | Take the collection from a git repository, at the commit `rev` is at when it's locked, installed as a directory is. The URL is `https://`, `ssh://`, such as `ssh://git@github.com/org/repo.git`, or `file://`. See [Git repository source](collection-sources.md#a-git-repository) for more details |
+| `{ git = "<url>" }` | Take the collection from a git repository at the commit `rev` points to when it's locked, and install it as a directory is. The URL can be `https://`, `ssh://` or `file://`, such as `ssh://git@github.com/org/repo.git`. See [Git repository source](collection-sources.md#a-git-repository) for more details |
 
-A `path` source that's a directory, editable or not, and a `git` source,
-can also have `version = "<version>"` set. This is a semantic version used
-in place of the one in `galaxy.yml` of that source and is used for a
-collection whose `galaxy.yml` has a placeholder its release fills in. See
+When a collection's `galaxy.yml` has a placeholder version that its release
+fills in, set `version = "<version>"` on its source. The semantic version is
+used in place of the one in `galaxy.yml`, and works for a `git` source or a
+directory `path` source, editable or not. See
 [Overriding galaxy.yml versions](collection-sources.md#overriding-galaxyyml-versions).
 
 An entry applies wherever the collection appears, whether the project lists
@@ -354,7 +353,7 @@ happens to have one by the same name.
 ## Requirements
 
 A requirement is a collection name followed by an optional version
-requirement, the same syntax as ansible-galaxy's `requirements.yml` and
+requirement, with the same syntax as ansible-galaxy's `requirements.yml` and
 `galaxy.yml`.
 
 ```text
@@ -369,8 +368,8 @@ NAMESPACE.NAME[VERSION REQUIREMENT]
 
 ### Version requirements
 
-A version requirement is `*`, for any version, or one or more clauses
-separated by commas, all of which must be met. A clause is an operator and a
+A version requirement is `*` for any version, or one or more clauses
+separated by commas that must all be met. A clause is an operator and a
 version:
 
 | Operator | Means |
@@ -381,12 +380,13 @@ version:
 | `<=`, `<` | This version or earlier, or only earlier |
 
 Collection versions are [semantic versions](https://semver.org/). A version
-in a clause can leave out its minor and patch parts, which count as `0`:
-`>=9` is `>=9.0.0`, and `==9` is exactly `9.0.0`. Pre-releases are supported,
-for example `>=2.0.0-rc.1` means `2.0.0-rc.1` as the minimum and any future
-RCs or a final release are also valid.
+in a clause can leave out its minor and patch parts, which count as `0`, so
+`>=9` is `>=9.0.0` and `==9` is exactly `9.0.0`. Pre-releases are supported,
+so `>=2.0.0-rc.1` accepts `2.0.0-rc.1`, any later release candidate and the
+final release.
 
-The following forms are not supported, use the suggested alternatives instead:
+The following forms aren't supported, and each has an alternative to write
+instead:
 
 | Written | Write instead |
 |---|---|

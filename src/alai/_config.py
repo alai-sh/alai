@@ -925,7 +925,7 @@ SETTINGS = (
         flag="--index",
         env="ALAI_INDEX",
         metavar="NAME=URL",
-        help="an index to resolve from, before those in config files; can be repeated",
+        help="an index to resolve from, before those in config files (can be repeated)",
         parse=_index_arg,
         parse_file=_index_tables,
         many=True,

@@ -24,15 +24,14 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
     lock = commands.add_parser(
         "lock",
         help="resolve the project's collections into alai.lock",
-        description="Resolve the collections the project's alai.toml asks for, its groups included, to one version "
-        + "of each, and write them to alai.lock beside it. Versions already in alai.lock are kept while they still "
-        + "fit.",
+        description="Resolve the collections the project's alai.toml and its groups ask for to one version of each, "
+        + "and write them to alai.lock beside it. Versions already in alai.lock are kept while they still fit.",
         formatter_class=HelpFormatter,
     )
     lock.add_argument(
         "--check",
         action="store_true",
-        help="resolve, but don't write alai.lock; exit 1 if it's missing or would change",
+        help="resolve without writing alai.lock, and exit 1 if it's missing or would change",
     )
     add_upgrade_args(lock, groups=True)
     add_global_args(lock, suppress=True)

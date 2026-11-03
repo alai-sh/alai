@@ -2,8 +2,9 @@
 
 `alai find` answers "which collection has this?" for a module, plugin,
 role or playbook, and "where did it go?" for one that was moved or removed.
-It searches a list of every plugin in every collection on the index, so it
-finds collections you haven't installed, and lists the ones you have first.
+`alai find` searches a list of every plugin in every collection on the
+index, so it finds collections you haven't installed and lists the ones you
+have first.
 
 [Finding plugins](casts/find.cast){ .alai-cast }
 
@@ -16,13 +17,14 @@ finds collections you haven't installed, and lists the ones you have first.
 | A full name (FQCN) | That plugin's [details](#a-plugins-details) | `alai find community.general.docker_container` |
 
 A glob is matched against full names once it has a namespace and a
-collection in front, and against short names otherwise. So
+collection in front, and against short names otherwise. For example,
 `'mgdis.ovh.*'` finds every plugin in `mgdis.ovh`, including ones in
 subdirectories such as `mgdis.ovh.cloud.block_storage.block_storage`. To
 search every collection in a namespace, give both parts, as in
 `alai find 'community.*.*'`. `'community.*'` on its own matches short
-names, so it finds only plugins in a `community/` subdirectory. That's
-also how to search a subdirectory, as in `alai find 'cloud.*'`.
+names, so it finds only plugins in a `community/` subdirectory. Matching
+short names is also how to search a subdirectory, as in
+`alai find 'cloud.*'`.
 
 `-x/--exact` matches whole names only, so `alai find -x user` leaves out
 `win_user`. `-t/--type` limits the search to one type, using the names
@@ -36,8 +38,8 @@ For a full name it suggests full names, such as
 ### Quoting globs
 
 Put a glob in single quotes, as in `alai find '*_info'` rather than
-`alai find *_info`. Without quotes, `*`, `?` and `[...]` will be expanded by the shell before alai
-sees them. Single quotes keep everything as typed. A word or a full name with
+`alai find *_info`. Without quotes, the shell expands `*`, `?` and `[...]`
+before alai sees them. Single quotes keep everything as typed. A word or a full name with
 no glob characters does not need to be quoted.
 
 Here `docker_container_info` is a file in the current directory, so the
@@ -57,17 +59,17 @@ Narrow it to a type, or several:
 
 [Searching one type, or several](casts/find-types.cast){ .alai-cast }
 
-Globs, quoted, match short names, or full names when they have dots:
+Quoted globs match short names, or full names when they have dots:
 
 [Searching with globs](casts/find-globs.cast){ .alai-cast }
 
-Give a full name, and `alai find` shows that plugin's details, such as
-whether it's installed, where it redirects, and more.
+Given a full name, `alai find` shows that plugin's details, such as whether
+it's installed and where it redirects:
 
 [An old name that no longer leads anywhere, and an ansible.legacy name](casts/find-redirects.cast){ .alai-cast }
 
-You can control the color and output format to make it more friendly when
-piping to other tools like [jq](https://jqlang.org/):
+When piping to other tools such as [jq](https://jqlang.org/), `--color`
+and `--output-format` control how the output looks:
 
 ```console
 $ alai find user --color always | less -R
@@ -76,8 +78,8 @@ $ alai find -x ipmath --output-format json \
     | jq -r '.collections | to_entries[] | select(.value.installed) | .key'
 ```
 
-Piped, alai lists every match rather than the first 20, and
-`--color always` can be used to force colors when piping.
+When piped, alai lists every match rather than the first 20, and
+`--color always` keeps the colors.
 
 ## What's listed first
 
@@ -94,31 +96,26 @@ this order:
 4. Collections present in alai's cache, for example one installed in a
    separate project.
 5. Collections in the [`ansible`](https://pypi.org/project/ansible/)
-   package. This is a package containing multiple pre-vetted collections by
-   the Ansible community.
+   package, which bundles collections the Ansible community has vetted.
 6. Other collections in the same namespaces as the `ansible` package's
    collections.
 7. Everything else, with collections that look like copies of a
    collection in the `ansible` package last. Their names are gray, and a
-   plugin's details say which collection it seems to copy. That's a guess,
-   from at least half their plugins having the same names, so it's only
-   used to rank them lower, not to hide them.
+   plugin's details say which collection it seems to copy. The copy check
+   is a guess based on at least half their plugins having the same names,
+   so it only ranks them lower and never hides them.
 8. Modules before other types, then by collection and name.
 
-This order tries to provide a priority based listing to show more relevant
-entries first before the remaining matches.
+The order puts the matches you're most likely to want first.
 
 On a terminal, only the first 20 matches are listed, installed ones
-first. Use `--limit N` to change the limit and `--limit 0` to remove the
-limit entirely and list them all. When the output goes to a pipe or a file,
-such as `alai find user | less` or `| grep`, there is no limit unless `--limit`
-is explicitly provided. The `--installed` argument lists only the plugins
-that are installed.
+first. When you need more, `--limit N` changes the limit and `--limit 0`
+lists them all. When the output goes to a pipe or a file, such as
+`alai find user | less` or `| grep`, there is no limit unless `--limit` is
+given. To list only the plugins that are installed, use `--installed`.
 
-Plugins that have been removed or are just an alias/redirection to another
-plugin are not listed by default unless it is an alias to a plugin with a
-different name. Use `-a`/`--all` to list removed plugins and aliases for
-partial matches too.
+Partial matches leave out removed plugins and aliases that point to a
+plugin with the same name. Use `-a`/`--all` to list them too.
 
 ## What the markers mean
 
@@ -144,9 +141,9 @@ for using the plugin, in this order:
 4. A cyan `↪` means you can use it under another name.
 5. `✓` or `·` means you can use it.
 
-In place of the description, a line that isn't simply usable says why that is
-the case. For example a redirect shows the plugin it ends at, with anything
-that stands in the way in brackets:
+When a plugin isn't simply usable, its line says why in place of the
+description. For example, a redirect shows the plugin it ends at, with
+anything that stands in the way in brackets:
 
 ```
 ↪ module    ansible.builtin.nmcli               → community.general.nmcli
@@ -158,8 +155,7 @@ that stands in the way in brackets:
 
 Otherwise the description is a short reason why it is not a normal target,
 such as `needs 3.9.1 (local 2.8.0)`, `deprecated`, `removed in 13.0.0` or
-`redirect loop`. The "Local" part here refers to the version installed in
-the project. A plugin's [details](#a-plugins-details) say when it moved or
+`redirect loop`. `local` is the version installed in the project. A plugin's [details](#a-plugins-details) say when it moved or
 was renamed, and show each step of a redirect.
 
 `alai find` renders
@@ -168,14 +164,14 @@ as best it can. For example, `C(lxc)` is shown in cyan, and `U()` as a link.
 
 !!! note "It depends on your terminal"
 
-    How much of this you see depends on the terminal. Italics, and links
-    (OSC 8 hyperlinks), aren't supported everywhere. A terminal that
+    How much of this you see depends on the terminal. Italics and links
+    (OSC 8 hyperlinks) aren't supported everywhere, and a terminal that
     doesn't support one shows the plain text instead. Some terminals only
     mark a link while you hold Ctrl (Cmd on macOS) and hover over it, as
-    Ghostty does. Inside tmux, links only reach the terminal when tmux is
-    told it supports them, with `set -as terminal-features
-    ",xterm-ghostty:hyperlinks"` (using your terminal's `TERM`, or `*`)
-    in its config, and you detach and reattach afterwards.
+    Ghostty does. Inside tmux, links only reach the terminal once tmux is
+    told the terminal supports them. Add `set -as terminal-features
+    ",xterm-ghostty:hyperlinks"` to tmux's config, with your terminal's
+    `TERM` or `*` in place of `xterm-ghostty`, then detach and reattach.
 
 ## A plugin's details
 
@@ -192,21 +188,20 @@ Searching for a full name shows the details of that plugin, such as:
   ends at has its description under it. A step's deprecation or removal
   message from its collection is shown under that step, as Ansible warns
   at every step it passes.
-- **Hint**: Extra information for how to install/use the plugin.
+- **Hint**: Extra information on how to install or use the plugin.
 
 [A plugin's details and where its redirects lead](casts/find-detail.cast){ .alai-cast }
 
-A redirect can lead to another that redirects again. alai follows and displays
-the whole redirection chain so it is clear how Ansible resolves the plugin
-name.
+A redirect can lead to another that redirects again, and alai shows the
+whole chain so it's clear how Ansible resolves the plugin name.
 
 ## For scripts
 
 With `--output-format json`, the output holds the facts alai knows about
 each plugin, rather than the human-friendly conclusions the text output
-shows. It is up to the caller to interpret and present the information in
-whatever format it wishes. It has no limit unless `--limit` is given. The
-following is the JSON output of
+shows, and the caller decides how to interpret and present them. The JSON
+output has no limit unless `--limit` is given. The following is the JSON
+output of
 `alai find ansible.builtin.docker_container --output-format json`:
 
 ```json
@@ -275,10 +270,10 @@ collection came from, not where its plugins were read from.
 
 If an installed collection doesn't have a plugin, but a newer version on the
 index does, that plugin's entry comes from the index and has its `index` set.
-For example with `ansible.windows` 3.8.0 installed,
+With `ansible.windows` 3.8.0 installed,
 `alai find 'ansible.windows.win_d[is]*' --output-format json` lists
-`win_dsc` from the installed files and `win_disk_info`, added in 3.9.1, from
-the index:
+`win_dsc` from the installed files and `win_disk_info` from the index, as
+`win_disk_info` was only added in 3.9.1:
 
 ```json
 {
@@ -363,54 +358,58 @@ Each plugin has:
 | `index` | The URL of the index whose list it was read from, or `null`. When `null`, the plugin was read from the installed collection's files, or for `ansible.builtin` and `eda.builtin`, from the `release` |
 | `matched` | Whether it matched the search, rather than being listed because a match redirects to it |
 
-Everything but `fqcn`, `index` and `matched` comes from the index, the
-installed collection, or for `ansible.builtin` and `eda.builtin`, the
-release. An installed collection's plugins are read from its files, but one
-only a newer version has comes from the index, with its `index`.
+Everything but `fqcn`, `index` and `matched` comes from the index or the
+installed collection, and for `ansible.builtin` and `eda.builtin` from the
+release. An installed collection's plugins are read from its files, but a
+plugin only a newer version has comes from the index and has `index` set.
 
-Whether a plugin can be used, as the details' **Installed** line says, isn't
-in the JSON. alai uses the JSON facts, following each `routing.redirect` as
-ansible-core does, and checking each step's `since` and `until` against
-the version of its collection that's installed.
+The JSON doesn't say whether a plugin can be used, as the details'
+**Installed** line does. alai works that out from the JSON facts by
+following each `routing.redirect` as ansible-core does and checking each
+step's `since` and `until` against the installed version of its
+collection.
 
 ## Where the list comes from
 
 The index publishes the list, `plugins.jsonl`, alongside its collections.
-alai downloads it once and then only again when it changes. It holds each
-plugin's name, type, collection, short description, the versions that have
-it, and its collection's routing for it, from `meta/runtime.yml`. With
-several [indexes](configuration.md#indexes), each one's list is searched, and
-where two have the same plugin, the first index's is used. An index without a
+alai downloads it once and then only again when it changes. `plugins.jsonl`
+holds each plugin's name, type, collection, short description, the versions
+that have it and its collection's routing for it from `meta/runtime.yml`.
+With several [indexes](configuration.md#indexes), alai searches each one's
+list and uses the first index's entry when two have the same plugin. An index without a
 list is skipped, and if none has one, `alai find` says so.
 
 ## Installed collections
 
 alai also reads the plugins and routing of each installed collection from
 its files, without running anything in it, as the version installed is the
-one Ansible uses. So a collection that isn't on any index, such as a source
-checkout or the collection you're developing, is searched too, and a route
-is followed as the installed version's `meta/runtime.yml` has it. The index
-still says which plugins a newer version adds. alai keeps what it read in
-the cache for a collection with a `MANIFEST.json`, so only the first search
-after installing it reads its files. One without, such as a checkout, is
-read on every search. If you edit an installed collection's files by hand,
+one Ansible uses. Reading the files means alai also searches collections
+that aren't on any index, such as a source checkout or the collection you're
+developing. Routes are followed as the installed version's
+`meta/runtime.yml` has them, and the index still says which plugins a newer
+version adds. alai keeps what it read in the cache for a collection with a
+`MANIFEST.json`, so only the first search after installing it reads its
+files. A collection without one, such as a checkout, is read on every
+search. If you edit an installed collection's files by hand,
 `--refresh` reads them again.
 
-`--no-index` searches only what's installed, with `ansible.builtin` and
-`eda.builtin`, and leaves out every index's list. Nothing is then listed as
-not installed, and nothing says a newer version has a plugin. `--installed`
-still uses the index's lists, so it says that.
+When you only want what's installed, `--no-index` searches the installed
+collections with `ansible.builtin` and `eda.builtin` and leaves out every
+index's list. Nothing is then listed as not installed, and nothing says a
+newer version has a plugin. `--installed` still uses the index's lists, so
+it does say when a newer version has a plugin.
 
 ## ansible-core's own plugins
 
-`ansible.builtin`, ansible-core's own plugins, and `eda.builtin`,
-ansible-rulebook's event sources and filters, aren't collections on an
-index. alai reads them from each project's latest release on PyPI, or on
+`ansible.builtin` holds ansible-core's own plugins and `eda.builtin` holds
+ansible-rulebook's event sources and filters, and neither is a collection on
+an index. alai reads them from each project's latest release on PyPI, or on
 the [`python_index`](alai-toml.md#python_index) set in its place, and
 ignores any lines an index has for either name. The first
-`alai find` downloads each sdist (ansible-core's is about 5 MB), reads its
-plugins and routing without running anything in it, and keeps the result in
-the cache, so later runs only ask the index whether there's a new release.
-Both count as installed, as each is part of the tool that runs its content.
-Offline, or when the index can't be reached, alai uses the last release it
-read, or warns that they aren't searchable until a run online reads them.
+`alai find` downloads each sdist (ansible-core's is about 5 MB) and reads
+its plugins and routing without running anything in it. alai keeps the
+result in the cache, so later runs only ask the index whether there's a new
+release. Both count as installed, as each is part of the tool that runs its
+content. When offline or the index can't be reached, alai uses the last
+release it read. Without one, alai warns that they aren't searchable until a
+run online reads them.

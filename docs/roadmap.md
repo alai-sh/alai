@@ -3,8 +3,8 @@
 !!! warning "Plans, not features"
 
     Nothing on this page works yet. The rest of the documentation describes
-    what alai does today; this page is what's planned, in no particular
-    order, and any of it may change. Feedback on any of it is welcome in the
+    what alai does today, and this page lists what's planned, in no
+    particular order. Any of it may change, and feedback is welcome in the
     [issue tracker](https://github.com/alai-sh/alai/issues).
 
 ## Planned
@@ -13,35 +13,34 @@
   metadata in `alai.toml` instead of `galaxy.yml`, so `alai add` and
   `alai remove` can edit a collection project's dependencies too.
 - **Several ansible-core versions per project**: resolving for one
-  ansible-core version, and named environments, each with its own
-  ansible-core version, groups and collections directory, for testing a
-  project against several releases.
+  ansible-core version, and named environments for testing a project
+  against several releases. Each environment has its own ansible-core
+  version, groups and collections directory.
 - **Private and authenticated indexes**, with credentials for an index
   that needs them, or a [tarball](collection-sources.md#a-tarball) URL.
 - **`requirements.yml`**: importing one into `alai.toml` with
   `alai add -r`, and installing from one with
-  `alai collection install -r`. Waiting on how people use the file's
-  `source:` and `signatures:` entries; if you depend on them, say so in the
-  issue tracker.
+  `alai collection install -r`. The import is waiting on how people use
+  the file's `source:` and `signatures:` entries, so if you depend on them,
+  say so in the issue tracker.
 - **A pre-release setting**, to always allow or never allow pre-releases,
   for the whole project or one collection.
-- **Excluding newer versions**: `--exclude-newer DATE`, and an
-  `exclude_newer` setting, to resolve only from versions published before a
-  date or a duration ago, for reproducing an old lock or holding back
-  releases until they've been out a while.
-- **JSON output** for the other commands that report data, such as
-  `config show`, for scripts, as `alai find` and `alai collection list`
-  have.
-- **Plugin documentation**: a separate tool, working with alai, to show a
-  plugin's full documentation, options and examples, as `ansible-doc`
-  does, without installing its collection first.
-- **Index tool**: a separate tool for setting up an index locally or building
-  the required files that a custom index would require.
+- **Excluding newer versions**: `--exclude-newer DATE` and an
+  `exclude_newer` setting to resolve only from versions published before a
+  date or a duration ago. Excluding newer versions helps to reproduce an old
+  lock or hold back releases until they've been out a while.
+- **JSON output** for scripts from the other commands that report data,
+  such as `config show`, as `alai find` and `alai collection list` have.
+- **Plugin documentation**: a separate tool that works with alai to show a
+  plugin's full documentation, options and examples as `ansible-doc` does,
+  but without installing its collection first.
+- **Index tool**: a separate tool for setting up an index locally or
+  building the files a custom index needs.
 - **Checking installed collections** against the checksums each one
   carries for its files, and **cleaning the cache**.
 
 ## Not planned yet
 
-- **Roles.** Only collections are installed; `alai.toml` leaves room to add
-  roles later.
+- **Roles.** Only collections are installed, but `alai.toml` leaves room to
+  add roles later.
 - **Verifying signatures**, until the index format carries them.

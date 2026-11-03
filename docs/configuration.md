@@ -1,8 +1,8 @@
 # Configuration
 
 alai reads settings from the command line, environment variables and
-[`alai.toml`](alai-toml.md) files. The layering of config values uses the
-following precedence.
+[`alai.toml`](alai-toml.md) files. When a setting is given in more than one
+place, the first of these wins:
 
 1. Command-line flags.
 2. `ALAI_*` environment variables.
@@ -11,9 +11,9 @@ following precedence.
 5. The system config file.
 6. Built-in defaults.
 
-Every setting, with its values, default, flag and environment variable, is
-listed in the [`alai.toml` reference](alai-toml.md#settings). This page
-covers where they can be set and how they combine.
+The [`alai.toml` reference](alai-toml.md#settings) lists every setting with
+its values, default, flag and environment variable. This page covers where
+settings can be set and how they combine.
 
 ## Config files
 
@@ -25,7 +25,7 @@ covers where they can be set and how they combine.
 
 If an `XDG_*` variable has a relative path, it is ignored, as per the XDG spec.
 
-All of these files take the same settings, the top-level keys and
+All of these files take the same settings, which are the top-level keys and
 `[[index]]`. Only the project's own `alai.toml` can also have
 [`[project]`](alai-toml.md#project), which describes that project rather
 than how alai runs. If `[project]` is defined in any other file, including a
@@ -91,8 +91,8 @@ Indexes, in resolution order
   alai      https://index.alai.sh/              built-in, default index
 ```
 
-Each setting shows where its value came from, such as a flag, an environment
-variable, a file, or the default. Running with `-v` also shows the values a
+Each setting shows the flag, environment variable, file or default its value
+came from. Running with `-v` also shows the values a
 higher level overrode, and the files looked for but not found.
 
 ### Indexes
@@ -121,18 +121,19 @@ current directory. A leading `~` expands to the home directory in both.
 
 Every setting can also be given for one run with an `ALAI_*` environment
 variable, and all but [`python_index`](alai-toml.md#python_index) with a
-command-line flag; both take precedence over every file. Each
-setting's flag and environment variable are listed with it in the
-[`alai.toml` reference](alai-toml.md). Flags are only accepted by the
-commands that use them. Only the project's `alai.toml` can set
+command-line flag. Flags and environment variables take precedence over every
+file. The [`alai.toml` reference](alai-toml.md) lists each setting's flag and
+environment variable, and a flag is only accepted by the commands that use
+it. Only the project's `alai.toml` can set
 `project.collections_dir`, but its flag and environment variable work for
 any run.
 
 ### Environment variables
 
 An environment variable set to an empty string counts as unset, so the
-setting comes from the files or its default. Boolean variables take `1`,
-`true`, `yes` or `on`, and `0`, `false`, `no` or `off`, in any case.
+setting comes from the files or its default. A boolean variable is true for
+`1`, `true`, `yes` or `on` and false for `0`, `false`, `no` or `off`, in any
+case.
 
 ### Boolean flags
 
@@ -143,19 +144,19 @@ wrapper's or alias's own flags takes effect.
 
 ## Options that aren't settings
 
-These control where settings come from, alai's output or a safety limit,
-so they have no `alai.toml` key:
+The following options control where settings come from, alai's output or a
+safety limit, so they have no `alai.toml` key:
 
 | Flag | Environment variable | |
 |---|---|---|
 | `--project <dir>` | `ALAI_PROJECT` | Start [project discovery](projects.md#finding-the-project-root) here instead of the current directory |
 | `--config-file <path>` | `ALAI_CONFIG_FILE` | Read only this config file |
 | `--no-config` | `ALAI_NO_CONFIG` | Read no config files |
-| `-v`, `--verbose` | none | Show debug lines: what alai decided and why. `-vv` also shows trace lines for each step. Counted wherever it appears, so `alai -v config show -v` is `-vv`; more than two is an error |
+| `-v`, `--verbose` | none | Show debug lines saying what alai decided and why. `-vv` also shows trace lines for each step. `-v` is counted wherever it appears, so `alai -v config show -v` is `-vv`, and more than two is an error |
 | `-q`, `--quiet` | none | Show only errors. Can't be combined with `-v` |
-| `--color <when>` | `NO_COLOR`, `FORCE_COLOR` | Color the output: `auto` (the default) only when it goes to a terminal that isn't `TERM=dumb`, `always` or `never`. With `auto`, a non-empty `NO_COLOR` turns color off and a non-empty `FORCE_COLOR` turns it on; `NO_COLOR` wins if both are set |
+| `--color <when>` | `NO_COLOR`, `FORCE_COLOR` | When to color the output, as `auto`, `always` or `never`. The default `auto` colors it only when it goes to a terminal that isn't `TERM=dumb`. With `auto`, a non-empty `NO_COLOR` turns color off and a non-empty `FORCE_COLOR` turns it on, but `NO_COLOR` wins if both are set |
 | `--no-progress` | `ALAI_NO_PROGRESS` | Don't draw progress while resolving, downloading or installing. Progress is only drawn when the output goes to a terminal that isn't `TERM=dumb`, and never with `-q` |
-| none | `ALAI_MAX_UNPACKED_SIZE` | The most a collection tarball may unpack to, in bytes, before alai refuses it. The default is `536870912` (512 MiB), and `0` means no limit. It stops a small hostile tarball from filling the disk |
+| none | `ALAI_MAX_UNPACKED_SIZE` | The most a collection tarball may unpack to, in bytes, before alai refuses it. The default is `536870912` (512 MiB), and `0` means no limit. The limit stops a small hostile tarball from filling the disk |
 
 ## Network
 
@@ -165,33 +166,32 @@ alai uses the operating system libraries to verify each server's certificate,
 as a browser does. On macOS that is the Security framework, so roots added to
 the Keychain and trust settings made in Keychain Access are honored. On Linux
 and other systems, alai loads the CA certificates from where OpenSSL keeps
-them, such as `/etc/ssl/certs`, and checks the chain itself. The location of
-this directory depends on the Linux distribution and how it is configured.
+them, such as `/etc/ssl/certs`, and checks the chain itself. Where OpenSSL
+keeps them depends on the Linux distribution and how it is configured.
 
 Except on macOS, alai is stricter than OpenSSL about malformed certificates.
 It refuses a version 1 CA certificate, or a server certificate that names its
 host only in the common name. The same applies on macOS when `SSL_CERT_FILE`
-or `SSL_CERT_DIR` is set, as alai then checks the chain itself. This could
-be a problem for some TLS-intercepting proxies that issue such certificates.
+or `SSL_CERT_DIR` is set, as alai then checks the chain itself. Some
+TLS-intercepting proxies issue such certificates, so alai may refuse their
+connections.
 
-The `SSL_CERT_FILE` and `SSL_CERT_DIR` environment variables can be set to a
-PEM bundle or directory of PEM files respectively to use for the CA trust
-check. If either is set, it replaces the system's certificates rather than
-adding to them.
+To trust other CA certificates, set `SSL_CERT_FILE` to a PEM bundle or
+`SSL_CERT_DIR` to a directory of PEM files. Either one replaces the system's
+certificates rather than adding to them.
 
 If a system has no CA certificates, alai fails with a TLS error saying so.
-Install these certificates, for example the `ca-certificates` package,
-or name a bundle with `SSL_CERT_FILE`.
+Install the system's CA certificates, such as with the `ca-certificates`
+package, or name a bundle with `SSL_CERT_FILE`.
 
 ### Capturing TLS traffic
 
-The `SSLKEYLOGFILE` environment variable can be used to capture the raw keys
-used for alai's TLS traffic. Set it to a file path and alai will append each
-session's key which can then be used by tools like Wireshark to decrypt the
-captured TLS traffic.
+To decrypt a capture of alai's TLS traffic, such as with Wireshark, set
+`SSLKEYLOGFILE` to a file path. alai appends each TLS session's keys to that
+file, which the tool can then read.
 
 Anyone with that file and a capture of the traffic can read the traffic, so
-unset the variable when you're done. It is deliberately not a setting in
+unset the variable when you're done. `SSLKEYLOGFILE` is deliberately not a setting in
 `alai.toml`, where a committed file could turn it on for everyone who clones
 the project.
 

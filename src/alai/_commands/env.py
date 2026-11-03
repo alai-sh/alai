@@ -15,15 +15,15 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
         "env",
         help="print the environment variables alai run sets, for a shell to use",
         description="Print the environment variables that make Ansible load collections from the project's "
-        + 'collections directory and nowhere else, as alai run sets them: eval "$(alai env)" in a shell. Nothing is '
-        + "locked or installed; a warning says when the collections directory doesn't match alai.lock.",
+        + 'collections directory and nowhere else, as alai run sets them, so eval "$(alai env)" sets them in a shell. '
+        + "Nothing is locked or installed, but a warning says when the collections directory doesn't match alai.lock.",
         formatter_class=HelpFormatter,
     )
     env.add_argument(
         "--output-format",
         choices=("sh", "fish", "pwsh", "dotenv"),
-        help="what to print: sh, export lines for POSIX shells; fish or pwsh, the same for fish and PowerShell; or "
-        + "dotenv, KEY=VALUE lines for env files. fish when SHELL is fish, else sh",
+        help="sh for POSIX shells, fish or pwsh for fish and PowerShell, or dotenv for KEY=VALUE lines in env files. "
+        + "The default is fish when SHELL is fish, and sh otherwise",
     )
     add_global_args(env, suppress=True)
     # The indexes only for telling whether alai.lock is out of date, as nothing is fetched.

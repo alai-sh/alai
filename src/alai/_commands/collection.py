@@ -24,10 +24,10 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
         "collection",
         help="install, uninstall and list collections outside the project's requirements and alai.lock",
         description="Install, uninstall and list collections in the collections directory by hand, as uv pip does "
-        + "for packages. Installing and uninstalling don't use or change the project's requirements or alai.lock, "
-        + "though an alai.toml, if the project has one, marks the project's directory and its settings apply, such as "
-        + "where collections are installed; the next alai sync puts the collections directory back as the lock has "
-        + "it. Listing compares what's installed with alai.lock.",
+        + "for packages. Installing and uninstalling don't use or change the project's requirements or alai.lock, and "
+        + "the next alai sync puts the collections directory back as the lock has it. When the project has an "
+        + "alai.toml, its settings still apply, such as where collections are installed. Listing compares what's "
+        + "installed with alai.lock.",
         formatter_class=HelpFormatter,
     )
     add_global_args(collection, suppress=True)
@@ -38,17 +38,17 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
         "install",
         help="install collections and what they need",
         description="Install collections and what they need into the collections directory, keeping installed "
-        + "versions that fit. Nothing else is removed. Outside a project, there's no collections directory to use, so "
-        + "--collections-dir, or the collections_dir setting, has to say where.",
+        + "versions that fit. Nothing else is removed. Outside a project there's no collections directory to use, so "
+        + "--collections-dir or the collections_dir setting has to say where.",
         formatter_class=HelpFormatter,
     )
     install.add_argument(
         "requirements",
         metavar="REQUIREMENT",
         nargs="*",
-        help="a collection, such as ansible.posix or 'cisco.ios>=11'; a directory holding one, such as ../ns.col, "
-        + "which is copied again every time; a built collection's tarball, such as ns-col-1.0.0.tar.gz or an "
-        + "https:// URL to one; or a git repository, as git+URL[@REV][#subdirectory=DIR&version=VERSION]",
+        help="a collection such as ansible.posix or 'cisco.ios>=11', a directory holding one such as ../ns.col, a "
+        + "built collection's tarball by path or https:// URL, or a git repository given as "
+        + "git+URL[@REV][#subdirectory=DIR&version=VERSION]. A directory is copied again every time",
     )
     install.add_argument(
         "-e",
@@ -56,16 +56,16 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
         metavar="DIR",
         action="append",
         default=[],
-        help="install the collection in DIR, a source or a built one, as a link to it, so edits there are seen; can be "
-        + "repeated",
+        help="install the source or built collection in DIR as a link to it, so edits there are seen "
+        + "(can be repeated)",
     )
     add_upgrade_args(install)
     add_reinstall_args(install)
     install.add_argument(
         "--keep-unversioned",
         action="store_true",
-        help="leave a collection whose version can't be read, such as a source checkout with no MANIFEST.json, as "
-        + "it is, as if it were the version asked for, rather than replace it",
+        help="treat an installed collection whose version can't be read as the version asked for, rather than "
+        + "replace it, such as a source checkout with no MANIFEST.json",
     )
     add_global_args(install, suppress=True)
     add_settings_args(install, "resolve", "install")
@@ -75,8 +75,8 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
         "uninstall",
         help="uninstall collections",
         description="Uninstall collections from the collections directory. What they depend on stays. A collection is "
-        + "given by its name, even one installed from a directory, a tarball or a git repository. Outside a project, "
-        + "there's no collections directory to use, so --collections-dir, or the collections_dir setting, has to say "
+        + "given by its name, even one installed from a directory, a tarball or a git repository. Outside a project "
+        + "there's no collections directory to use, so --collections-dir or the collections_dir setting has to say "
         + "where.",
         formatter_class=HelpFormatter,
     )
@@ -93,10 +93,10 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
     list_ = collection_commands.add_parser(
         "list",
         help="list the installed collections",
-        description="List the collections in the collections directory, whatever installed them, and, when the "
-        + "project has an alai.lock, how each compares with it: as locked, not in it, installed differently, or locked "
-        + "but not installed. Outside a project, there's no collections directory to use, so --collections-dir, or the "
-        + "collections_dir setting, has to say where.",
+        description="List the collections in the collections directory, whatever installed them. When the project "
+        + "has an alai.lock, each is shown as locked, not in it, installed differently, or locked but not installed. "
+        + "Outside a project there's no collections directory to use, so --collections-dir or the collections_dir "
+        + "setting has to say where.",
         formatter_class=HelpFormatter,
     )
     list_.add_argument(
@@ -112,12 +112,12 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
     path = collection_commands.add_parser(
         "path",
         help="show where a collection's files are on disk",
-        description="Show where each collection's files are on disk, for tools that read them, such as a "
-        + "documentation viewer. alai uses the first copy it finds, checking the collection project's own checkout, "
-        + "the collections directory, the version in alai.lock and the newest version in the cache, in that order. "
+        description="Show where each collection's files are on disk, for tools that read them such as a "
+        + "documentation viewer. alai uses the first copy it finds, checking in order the collection project's own "
+        + "checkout, the collections directory, the version in alai.lock and the newest version in the cache. "
         + "If none of them has the collection, alai downloads the latest version from the indexes into the cache. "
-        + "For ansible.builtin and "
-        + "eda.builtin, it's the source of the latest ansible-core or ansible-rulebook release on the Python index. "
+        + "The files for ansible.builtin and eda.builtin come from the latest ansible-core or ansible-rulebook "
+        + "release on the Python index. "
         + "With --output-format json, NAME can be left out to show only the project's own collection.",
         formatter_class=HelpFormatter,
     )

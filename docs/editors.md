@@ -15,19 +15,17 @@ project's collections.
 When an editor runs or debugs Ansible, it needs to set the same
 environment variables as [`alai run`](running-ansible.md), so that Ansible
 only loads the project's collections. alai doesn't change editor settings
-itself, because they are typically based on user preferences, and detecting
-which editor is being used and merging in configuration options would be
-very difficult. Instead, `alai env --output-format dotenv` can be used to
-write the environment variables Ansible needs to see the collections alai
-manages.
+itself, as editor settings are usually personal and merging into each
+editor's configuration would be very difficult. Instead,
+`alai env --output-format dotenv` prints the environment variables Ansible
+needs in a file format that editors can load.
 
 ## Visual Studio Code
 
 When using VS Code, the Python debugger has to run in the same Python
-environment that ansible-core is installed in. As alai is typically installed
-as a uv tool, this is not the environment alai is in. Instead, you can
-configure VS Code to launch the debug task using the `alai env` environment
-file generated for that project.
+environment that ansible-core is installed in. alai is usually installed as
+a uv tool in an environment of its own, so VS Code launches the debug task
+with an environment file that `alai env` writes for the project.
 
 ### Running a playbook under the debugger
 
@@ -76,19 +74,18 @@ under the Python debugger:
   `ansible-inventory`, and so on.
 - In a [collection project](projects.md#collection-project), give a
   playbook in the collection by its fully qualified name rather than its
-  path, such as
-  `"args": ["playbook", "my_ns.my_col.site"]`, so its short names for the
-  collection's content resolve. See
+  path, so the playbook's short names for the collection's content resolve.
+  For example, use `"args": ["playbook", "my_ns.my_col.site"]`. See
   [In a collection project](running-ansible.md#in-a-collection-project).
-- It runs with the Python interpreter selected for the workspace, which
-  must be the one ansible-core is installed in, such as the project's
+- The launch runs with the Python interpreter selected for the workspace,
+  which must be the one ansible-core is installed in, such as the project's
   `.venv`. Set `"python"` in the configuration to choose another.
 - `alai env` doesn't install anything, so the task runs `alai sync` first.
   The file `.vscode/alai.env` is specific to that machine, so add it to
   `.gitignore`.
 - To step into ansible-core's controller code, add `"justMyCode": false`.
-  Modules aren't debugged by this launch; see
-  [What breakpoints hit](#what-breakpoints-hit).
+  Modules aren't debugged by this launch, as
+  [What breakpoints hit](#what-breakpoints-hit) explains.
 
 ### Attaching to `alai run`
 
@@ -99,7 +96,7 @@ debugpy, waiting for the editor:
 $ alai run python -m debugpy --listen 5678 --wait-for-client -m ansible playbook site.yml -i inventory.ini
 ```
 
-then attach to it with a configuration such as:
+Then attach the editor to it with a configuration such as:
 
 ```json
 {
@@ -110,13 +107,13 @@ then attach to it with a configuration such as:
 }
 ```
 
-`python` there is whichever is first on `PATH`, so activate the
-environment ansible-core is in first, and install debugpy into it.
+The `python` in that command is whichever is first on `PATH`, so first
+activate the environment ansible-core is in and install debugpy into it.
 
 ### What breakpoints hit
 
-Breakpoints in code that runs in the `ansible-playbook` process hit, such
-as filter, lookup, action, callback and inventory plugins, and the
+Breakpoints hit in code that runs in the `ansible-playbook` process, such
+as filter, lookup, action, callback and inventory plugins and the
 `module_utils` they import. Breakpoints in modules don't, as Ansible runs
 each module in a process of its own.
 
@@ -127,9 +124,9 @@ modules connect back to the debugger.
 In a [collection project](projects.md#collection-project), Ansible loads
 the collection through a link in its collections directory, as it does a
 collection from an
-[editable directory](collection-sources.md#an-editable-directory). While the
-directory is different from your checkout, breakpoints set in your checkout
-still hit, as the debugger matches them on the real path the link leads to.
+[editable directory](collection-sources.md#an-editable-directory). Although
+that path differs from your checkout, breakpoints set in your checkout still
+hit, as the debugger matches them on the real path the link leads to.
 
 The call stack shows the file's path in your checkout when you use
 `alai run` or `alai env`, but `ansible-test` currently shows the path in the
@@ -139,15 +136,14 @@ have further limitations described in
 
 ### Debugging with ansible-test
 
-ansible-test has the ability to debug Python modules launched in the
-ansible-test session through the `--dev-debug-on-demand` CLI argument. In
-this mode, ansible-test sets up Ansible, and the modules it runs, to connect
-back to the debugger automatically when they start, so you can debug the
-code there.
+To debug the Python modules that ansible-test launches, use its
+`--dev-debug-on-demand` option. With that option, ansible-test sets up
+Ansible and the modules it runs to connect back to the debugger
+automatically when they start.
 
-To use `--dev-debug-on-demand`, the launch configuration is the same as any
-other. Set `args` to `test ... --dev-debug-on-demand` to enter this mode, and
-use the `envFile` and `preLaunchTask` defined above:
+A launch configuration for `--dev-debug-on-demand` is the same as any
+other. Set `args` to `test ... --dev-debug-on-demand`, and use the `envFile`
+and `preLaunchTask` defined above:
 
 ```json
 {
@@ -176,9 +172,9 @@ debug collection code and what does and does not work:
 | `test shell`, `test integration` with `--docker` or `--remote` | The same, in a container or on another host | Set in the collections directory | Doesn't work yet |
 | `test windows-integration`, `test network-integration` | Integration targets on Windows or network hosts | Set in your checkout | ansible-test doesn't connect these hosts to the debugger |
 
-Commands with `--venv`, and `test units --local`, don't work in a
-collection project; see
-[Running Ansible](running-ansible.md#in-a-collection-project).
+Commands with `--venv` and `test units --local` don't work in a
+collection project, as
+[Running Ansible](running-ansible.md#in-a-collection-project) explains.
 
 #### `ansible-test shell`
 
@@ -189,15 +185,15 @@ commands in this shell through `alai run ...`.
 
 #### `ansible-test integration`
 
-Unlike `ansible-test shell`, this command runs the given integration test
-target under the debugger, rather than providing a shell to run any
-arbitrary command. For example,
-`"args": ["test", "integration", "--dev-debug-on-demand", "my_target"]` will
-run the `tests/integration/targets/my_target` target with the debugger
+Unlike `ansible-test shell`, `ansible-test integration` runs the given
+integration test target under the debugger rather than opening a shell for
+any command. For example,
+`"args": ["test", "integration", "--dev-debug-on-demand", "my_target"]`
+runs the `tests/integration/targets/my_target` target with the debugger
 attached.
 
-alai can't hook into this process, so module breakpoints don't hit, and the
-call stack for controller-side plugins shows the path in the collections
+alai can't hook into the integration run, so module breakpoints don't hit,
+and the call stack for controller-side plugins shows the path in the collections
 directory rather than your checkout. To debug a module the
 target uses, run it from [`ansible-test shell`](#ansible-test-shell) with
 `alai run` instead.
@@ -209,8 +205,8 @@ ansible-test set up:
 
 | Check | Expected | If not |
 |---|---|---|
-| `command -v ansible` | A path in ansible-test's temporary directory, `/tmp/ansible-test-…-injector/ansible` | Something put another `ansible` first: usually the terminal's environment activation. Run `deactivate`, or see below |
-| `echo "$ANSIBLE_TEST_DEBUGGER_CONFIG"` | JSON with `-m debugpy --connect localhost:<port>` | ansible-test didn't detect the debugger, so it wasn't started from the launch configuration. Add `"-v"` to the launch's `args`: it says `Enabling on-demand debugging.` when it does, and `Debugging disabled because no debugger was detected.` when it doesn't |
+| `command -v ansible` | A path in ansible-test's temporary directory, `/tmp/ansible-test-…-injector/ansible` | Something put another `ansible` first, usually the terminal's environment activation. Run `deactivate`, or see below |
+| `echo "$ANSIBLE_TEST_DEBUGGER_CONFIG"` | JSON with `-m debugpy --connect localhost:<port>` | ansible-test didn't detect the debugger, so it wasn't started from the launch configuration. Add `"-v"` to the launch's `args`, and ansible-test says `Enabling on-demand debugging.` when it does, and `Debugging disabled because no debugger was detected.` when it doesn't |
 | `echo "$ANSIBLE_COLLECTIONS_PATH"` | The collections directory `alai env` prints | Something in the shell's startup files, such as `~/.bashrc`, set its own. Run the command with `alai run` |
 
 To tell a process that isn't connected from a breakpoint that doesn't
@@ -227,23 +223,25 @@ To stop the terminal activation, turn it off for the workspace in
 ```
 
 The selected environment is still used to run and debug Python, but
-terminals VS Code opens no longer activate it, so `ansible`, `python` or
-`pytest` typed into one, and `alai run ansible-playbook …`, use whatever
-`PATH` finds instead. VS Code has no way to turn off the environment
-activation for a single launch configuration. Another option is to set the
-Python Environments extension's
-`python-envs.terminal.autoActivationType` to `shellStartup`, which activates
-the environment as a terminal starts rather than injecting it as a command on
-the launched terminal. Activating it at start means it doesn't override ansible-test's `ansible`.
-It's a machine-wide setting and can't be set in `.vscode/settings.json` for
-the workspace.
+terminals VS Code opens no longer activate it. Commands typed into those
+terminals, such as `ansible`, `pytest` or `alai run ansible-playbook …`,
+then use whatever `PATH` finds. VS Code has no way to turn off the
+environment activation for a single launch configuration.
 
-For more detail, add `"logToFile": true` to the launch configuration,
-which writes debugpy's logs to the extension's directory, and export
-`DEBUGPY_LOG_DIR=/tmp/debugpy-logs` in the shell before running a
-command.
+Another option is to set the Python Environments extension's
+`python-envs.terminal.autoActivationType` to `shellStartup`. With
+`shellStartup`, the environment is activated as a terminal starts rather
+than typed into the terminal as a command, so it doesn't override
+ansible-test's `ansible`. `python-envs.terminal.autoActivationType` is a
+machine-wide setting and can't be set in `.vscode/settings.json` for the
+workspace.
+
+For more detail from debugpy, add `"logToFile": true` to the launch
+configuration to write its logs to the extension's directory. In the shell,
+export `DEBUGPY_LOG_DIR=/tmp/debugpy-logs` before running a command.
 
 ### Other tools
 
-The Python extension can load the same `alai.env` file for its terminals and test
-runs: set `python.envFile` to `${workspaceFolder}/.vscode/alai.env`.
+The Python extension can load the same `alai.env` file for its terminals
+and test runs when `python.envFile` is set to
+`${workspaceFolder}/.vscode/alai.env`.
