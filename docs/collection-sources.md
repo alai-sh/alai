@@ -1,10 +1,10 @@
 # Collection sources
 
-A collection's source defines where and how alai gets the collection from.
-Most come from an [index](indexes.md), found by name, and need nothing extra to be
-set. A collection can also be retrieved from a specific index, a directory on
-disk, a built collection's tarball, or a git repository, by naming it in
-[`[project.sources]`](alai-toml.md#projectsources):
+A collection's source is where alai gets the collection from. Most
+collections come from an [index](indexes.md) by name and need nothing extra
+set. A collection can instead come from a specific index, a directory, a
+tarball or a git repository when
+[`[project.sources]`](alai-toml.md#projectsources) names it:
 
 ```toml
 [project]
@@ -34,25 +34,24 @@ collections = [
 | [A tarball](#a-tarball) | `{ path = "<file>" }` or `{ url = "<url>" }` | Extracting it | A built collection that isn't on an index, such as a CI build or a release download |
 | [A git repository](#a-git-repository) | `{ git = "<url>", rev = "<rev>" }` | Fetching the commit and installing like a directory | A collection that's only in a repository, or a fix that isn't released yet |
 
-The defined source is also stored in the `alai.toml` and `alai.lock` files so
-that everyone installing the project gets the same thing.
+The source is recorded in `alai.toml` and `alai.lock`, so everyone
+installing the project gets the same thing.
 
 ## An index
 
-This is the default and is used when a collection has no `[project.sources]`
-entry. The index used is the first configured index that contains the
-specified collection (see
-[Configuration](configuration.md#indexes)). `alai.lock` records the index's
-URL, the version chosen and its checksum, and `alai sync` downloads exactly
-that version and checks it against the checksum:
+An index is the default source, used when a collection has no
+`[project.sources]` entry. The collection comes from the first configured
+index that has it (see [Configuration](configuration.md#indexes)).
+`alai.lock` records the index's URL, the version chosen and its checksum.
+`alai sync` downloads exactly that version and checks it against the
+checksum:
 
 [Installing a collection, and what it needs, from the index](casts/source-index.cast){ .alai-cast }
 
-`{ index = "<name>" }` takes a collection from the
-[`[[index]]`](alai-toml.md#index) with that name, and only from there. The
-sources can also be used to list a source for a dependency, for example
-`ansible.netcommon` is a dependency of `cisco.ios` and will be pulled from the
-`internal` index regardless of where `cisco.ios` was from.
+When a collection must come from one index, `{ index = "<name>" }` takes it
+only from the [`[[index]]`](alai-toml.md#index) with that name. A dependency
+can have a source too, so in the example below `ansible.netcommon` comes from
+the `internal` index wherever `cisco.ios` came from.
 
 ```toml
 [[index]]
@@ -67,9 +66,8 @@ collections = ["cisco.ios"]
 "ansible.netcommon" = { index = "internal" }
 ```
 
-To use the default index, either leave out `index`, so the indexes are
-searched in order, or set `{ index = "alai" }` to use only the default index
-and none of the custom ones defined.
+Leaving out `index` searches the indexes in order. To use only the default
+index and none of the custom ones, set `{ index = "alai" }`.
 
 Name the index only when:
 
@@ -81,17 +79,17 @@ Name the index only when:
 
 ## A directory
 
-A directory source is the path to a directory containing the collection to
-install. The directory is copied to the collections directory, which ensures
-any changes made to either the source or the copy don't affect each other.
+A directory source is the path to a directory holding the collection. alai
+copies the directory into the collections directory, so changes to the source
+or the copy don't affect each other.
 
-To add a directory as a source use:
+To add a directory as a source, run:
 
 ```console
 $ alai add <dir>
 ```
 
-This will add the following to the `alai.toml`:
+`alai add` writes the following to `alai.toml`:
 
 ```toml
 [project]
@@ -105,24 +103,21 @@ collections = [
 
 [Adding a collection from a directory](casts/source-directory.cast){ .alai-cast }
 
-How it is installed depends on what the directory holds:
+How the directory is installed depends on what it holds:
 
-- **A collection's source** (with a `galaxy.yml`): the collection is built,
-  and the result copied into the collections directory, so what
-  `galaxy.yml` leaves out of a build, such as `notes.txt` above, isn't
-  copied. While this internal build will respect the `build_ignore` value in
-  the `galaxy.yml` it does not support the `manifest` option and hidden
-  directories at the root of the collections will be left out.
-- **A built collection** (with a `MANIFEST.json`): the directory is already
-  considered built and is copied as is.
+- **A collection's source**, with a `galaxy.yml`, is built and the result
+  copied into the collections directory, so what `galaxy.yml` leaves out of
+  a build isn't copied. The build respects `build_ignore` in `galaxy.yml`,
+  but it doesn't support the `manifest` option and leaves out hidden
+  directories at the root of the collection.
+- **A built collection**, with a `MANIFEST.json`, is copied as it is.
 
-A directory with both is an error and cannot be installed normally.
+A directory with both a `galaxy.yml` and a `MANIFEST.json` is an error.
 
-The collection's version and dependencies are read from the `galaxy.yml`
-or `MANIFEST.json` and the `requires_ansible` from `meta/runtime.yml`. Any
-subsequent dependencies will go through the normal resolution process and are
-treated as normal collections from an index unless a `[project.sources]` entry
-is present.
+alai reads the collection's version and dependencies from `galaxy.yml` or
+`MANIFEST.json`, and its `requires_ansible` from `meta/runtime.yml`. The
+dependencies are resolved like any other collection, from an index unless
+they have a `[project.sources]` entry of their own.
 
 Use one for:
 
@@ -136,17 +131,17 @@ Use one for:
 Where it falls short:
 
 - **Edits aren't picked up straight away.** The collection is copied again
-  when its version changes, when the contents of `galaxy.yml`,
-  `MANIFEST.json` or `meta/runtime.yml` change, or with
-  `alai sync --reinstall-collection NAME`, but not when another file
-  changes. To see every edit, make it editable.
+  when its version or the contents of `galaxy.yml`, `MANIFEST.json` or
+  `meta/runtime.yml` change, but not when another file does.
+  `alai sync --reinstall-collection NAME` copies it again too, and making
+  the directory editable shows every edit.
 - **The directory must be there for everyone.** `alai.lock` records its
   path, so a teammate or CI job needs the same directory at the same place
-  relative to the project, such as a git submodule, or a sibling checkout
-  your CI clones first.
-- **`galaxy.yml` must be valid.** Installing a directory must build the
-  collection, which means the `galaxy.yml` must be valid, including fields that
-  may not be used at runtime like `readme` and `authors`.
+  relative to the project. A git submodule or a sibling checkout that CI
+  clones first both work.
+- **`galaxy.yml` must be valid.** Installing a directory builds the
+  collection, so its `galaxy.yml` must be valid. The check includes fields
+  Ansible doesn't use at runtime, such as `readme` and `authors`.
 
 !!! warning "How a directory is built may change"
 
@@ -156,18 +151,17 @@ Where it falls short:
 
 ## An editable directory
 
-An editable directory is like a normal directory source, but the source is not
-built and copied. Instead, it will use a symlink to link the editable target
-into alai's collection directory to ensure any changes made to the edit target
-are seen by Ansible.
+An editable directory is like a directory source, but it isn't built or
+copied. alai symlinks the directory into the collections directory instead,
+so Ansible sees every change made to it.
 
-To add a directory as an editable source use:
+To add a directory as an editable source, run:
 
 ```console
 $ alai add --editable <dir>
 ```
 
-This will add the following to the `alai.toml`:
+`alai add` writes the following to `alai.toml`:
 
 ```toml
 [project]
@@ -194,12 +188,12 @@ Where it falls short:
 - **Nothing is built.** Ansible sees the directory as it is. Anything a build
   would leave out is still there, even though a real release won't have it.
 - **The directory must be there for everyone**, as for a copied one.
-- **It's a link**, so anything that copies the collections directory
-  somewhere else, such as into a container image, copies the link, not the
-  collection. Use a copied directory for that.
+- **It's a link.** Copying the collections directory somewhere else, such
+  as into a container image, copies the link rather than the collection. Use
+  a copied directory for that.
 
-`alai add` of the same directory with or without `--editable` switches
-between the two.
+To switch between the two, run `alai add` on the same directory with or
+without `--editable`.
 
 ## Collections in your own repository
 
@@ -219,7 +213,7 @@ collections = ["corp.tools", "community.general>=10"]
 path is relative to the project root and is recorded in `alai.lock`, so
 anyone who clones the repository gets the same collection with `alai sync`.
 
-An [editable directory](#an-editable-directory) is usually the best fit as
+An [editable directory](#an-editable-directory) is usually the best fit, as
 edits take effect straight away and nothing is built. If the collections
 directory is copied somewhere else, such as into a container image, leave
 out `editable` to use a [copied directory](#a-directory) instead.
@@ -230,24 +224,25 @@ out `editable` to use a [copied directory](#a-directory) instead.
     [collections directory](projects.md#where-collections-are-installed),
     such as `collections/ansible_collections/corp/tools`. `alai sync` makes
     that directory hold only what `alai.lock` lists, so it removes a
-    collection that has no source. A source pointing inside it is an error.
+    collection that has no source. A source pointing inside the collections
+    directory is an error.
     Keep your collections in another directory and let alai link or copy them
     in as a project source.
 
 ## A tarball
 
-A tarball is either a file path or HTTP URL to a prebuilt collection `.tar.gz`.
-alai will extract the tarball and place it in the collections directory like
-an index sourced collection.
+A tarball source is a file path or HTTP URL to a built collection's
+`.tar.gz`. alai extracts the tarball into the collections directory as it
+does a collection from an index.
 
-To add a tarball as a source use:
+To add a tarball as a source, run:
 
 ```console
 $ alai add dist/corp-local-2.1.0.tar.gz
 $ alai add "https://artifacts.example.com/corp-web-1.4.0.tar.gz"
 ```
 
-This will add the following to the `alai.toml`:
+`alai add` writes the following to `alai.toml`:
 
 ```toml
 [project]
@@ -267,10 +262,10 @@ Anything else is refused before it's read or downloaded whole.
 [Adding a collection from a tarball](casts/source-tarball.cast){ .alai-cast }
 
 The tarball is installed exactly as one from an index is. Only the files
-declared in the `FILES.json` are created and each file is checked against its
-checksum. Its version and dependencies are what its `MANIFEST.json` says,
-its `requires_ansible` what its `meta/runtime.yml` says, and its dependencies
-come from indexes, unless they have a source of their own.
+listed in its `FILES.json` are created, and each one is checked against its
+checksum. The collection's version and dependencies come from its
+`MANIFEST.json`, and its `requires_ansible` from `meta/runtime.yml`. The
+dependencies come from indexes unless they have a source of their own.
 
 `alai.lock` records the tarball's checksum and size, as it does an index's
 artifact.
@@ -286,23 +281,23 @@ Where it falls short:
 
 - **A file must be there for everyone**, as a directory must.
 - **Credentials aren't sent**, so a URL has to be readable without them.
-- **It can't be editable**: a tarball is a release. Use a directory to work
-  on the collection.
+- **It can't be editable**, as a tarball is a release. Use a directory to
+  work on the collection.
 
 ## A git repository
 
-A git source is a collection stored in any local or remote git repository.
-It can specify the commit/tag/branch to use as well as a few extra options like
-`subdirectory` or `version`.
+A git source is a collection in a local or remote git repository. The source
+can name the branch, tag or commit to use, and options such as `subdirectory`
+and `version`.
 
-To add a git collection as a source use:
+To add a git collection as a source, run:
 
 ```console
 $ alai add 'git+https://github.com/corp/monorepo@main#subdirectory=collections/corp.net'
 $ alai add 'git+ssh://git@github.com/ansible-collections/community.general@13.5.0'
 ```
 
-This will add the following to the `alai.toml`:
+`alai add` writes the following to `alai.toml`:
 
 ```toml
 [project]
@@ -322,9 +317,9 @@ The following values can also be set with the git source type:
 
 |Key|Purpose|
 |---|---|
-|rev|The branch, tag, or full commit hash to check out. If unset, the default branch is used|
-|subdirectory|The collection's directory (where its `galaxy.yml` is) to use in the repository if not in the root.|
-|version|Override the `version` of the `galaxy.yml` if it isn't a valid semver value. See [Overriding galaxy.yml versions](#overriding-galaxyyml-versions).|
+|rev|The branch, tag or full commit hash to check out, or the default branch when unset|
+|subdirectory|The directory in the repository holding the collection's `galaxy.yml`, when it isn't the root|
+|version|The version to use in place of the one in `galaxy.yml`, when that isn't valid semver. See [Overriding galaxy.yml versions](#overriding-galaxyyml-versions)|
 
 The repository is given as a URL:
 
@@ -335,28 +330,27 @@ The repository is given as a URL:
 | SSH, another port | `ssh://git@git.example.com:2222/corp/windows.git` | `git+ssh://git@git.example.com:2222/corp/windows.git@v3.0.0` |
 | A repository on disk | `file:///srv/git/windows.git` | `git+file:///srv/git/windows.git@v3.0.0` |
 
-git's shorter SSH form, `git@github.com:corp/windows.git`, which GitHub
-gives you to clone over SSH, is not supported. Use the `ssh://` URL format
-instead.
+GitHub gives SSH clone URLs in git's shorter form, such as
+`git@github.com:corp/windows.git`, which alai doesn't support. Use the
+`ssh://` URL format instead.
 
-alai fetches the repository using the `git` you have installed and will fetch
-the `rev` specified into the cache. From there the collection is installed
-like [a directory source](#a-directory) is. Submodules are fetched, but Git LFS
-artifacts are not.
+alai fetches `rev` into its cache with the `git` you have installed. From
+the cache, the collection is installed like [a directory source](#a-directory)
+is. Submodules are fetched, but Git LFS artifacts are not.
 
 `alai.lock` records the commit `rev` was at when it was locked, and keeps
-it. This means a branch that has moved on, or a tag that was moved, doesn't
-change what `alai sync` installs. `alai lock -P corp.net`
-(`--upgrade-collection`), or `-U` for everything, looks `rev` up again. A
-new commit is installed in place of the old one even when the version in
-`galaxy.yml` is the same. Changing the entry in `alai.toml` locks it again.
+it. A branch that has moved on or a tag that was moved doesn't change what
+`alai sync` installs. To look `rev` up again, run `alai lock -P corp.net`
+(`--upgrade-collection`), or `-U` for everything. A new commit is installed
+in place of the old one even when the version in `galaxy.yml` is the same.
+Changing the entry in `alai.toml` locks the collection again.
 
 Use one for:
 
 - **A collection that's only published as a repository**, such as many on
   GitHub.
-- **A fix that isn't released yet**: point the collection at the branch or
-  commit with it, then back at an index once it's out.
+- **A fix that isn't released yet.** Point the collection at the branch or
+  commit with the fix, then back at an index once the fix is released.
 - **A repository holding several collections**, each taken from its
   directory with `subdirectory`.
 
@@ -364,32 +358,31 @@ Where it falls short:
 
 - **It needs `git`**, and access to the repository for everyone who locks
   the project or installs it with nothing cached.
-- **Edits aren't seen**: a commit is fixed. Use an editable directory, a
-  checkout of your own, to work on the collection.
+- **Edits aren't seen**, as a commit is fixed. To work on the collection,
+  use an editable directory with a checkout of your own.
 - **A commit's abbreviated hash can't be used**, as finding it needs the
-  whole history: give the full hash.
+  whole history. Give the full hash instead.
 
 !!! warning "ssh may ask questions"
 
-    alai doesn't stop ssh from asking for a key's passphrase, or whether to
-    trust a host it hasn't seen before, as `git clone` would. When several
-    repositories are fetched at once, their questions can arrive together.
-    Without a terminal, as in CI, ssh can't ask, and the fetch fails. Use the
-    various mechanisms `git` has for silencing prompts like
-    `GIT_SSH_COMMAND="ssh -o BatchMode=yes"` in these environments.
+    As with `git clone`, ssh may ask for a key's passphrase or whether to
+    trust a host it hasn't seen before. When several repositories are fetched
+    at once, their questions can arrive together. Without a terminal, as in
+    CI, ssh can't ask and the fetch fails. In those environments, turn the
+    prompts off with one of git's settings, such as
+    `GIT_SSH_COMMAND="ssh -o BatchMode=yes"`.
 
 ## Overriding galaxy.yml versions
 
-Some collections' `galaxy.yml` have a `version` that is not a valid semver
-value, for example a placeholder for a release process to fill in. alai
-refuses to build a collection with such a value, as it can't know what
-version it is for. The `version` source value can be used to explicitly set a
-version for such scenarios and is supported for sources that build the
-collection from source, like a directory or git source.
+Some collections' `galaxy.yml` have a `version` that isn't valid semver, such
+as a placeholder for a release process to fill in. alai refuses to build such
+a collection, as it can't know what version it is. When a source builds the
+collection, as a directory or git source does, its `version` key sets the
+version to use instead.
 
-For example, the following will clone and build the git URL at the tagged
-commit `1.5.0`. The `galaxy.yml` at that tag has
-`version: '{{ REPLACE_VERSION }}'`, so the `version` key will override it.
+For example, the following clones and builds the repository at the tag
+`1.5.0`. The `galaxy.yml` at that tag has `version: '{{ REPLACE_VERSION }}'`,
+so the `version` key overrides it.
 
 ```console
 $ alai add 'git+https://github.com/chocolatey-community/chocolatey-ansible@1.5.0#subdirectory=chocolatey&version=1.5.0'
@@ -400,6 +393,6 @@ $ alai add 'git+https://github.com/chocolatey-community/chocolatey-ansible@1.5.0
 "chocolatey.chocolatey" = { git = "https://github.com/chocolatey-community/chocolatey-ansible", subdirectory = "chocolatey", rev = "1.5.0", version = "1.5.0" }
 ```
 
-It's used in place of `galaxy.yml`'s, in `alai.lock` and in the installed
-collection's `MANIFEST.json`, so requirements other collections have on it
-mean what they say.
+The `version` key is used in place of the version in `galaxy.yml`, both in
+`alai.lock` and in the installed collection's `MANIFEST.json`. Requirements
+other collections have on the collection then mean what they say.

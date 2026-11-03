@@ -22,26 +22,26 @@ inspired by [uv](https://docs.astral.sh/uv/).
     and it seemed better to say so outright rather than after you've read
     the docs or started using the software.
 
-alai is a tool that can help manage collections used in an Ansible project as
-well as managing the dependencies and environment for a collection project
-itself. Everything is designed to be self-contained so that environment
-settings and existing collections do not affect any projects using alai. This
-keeps projects as the authoritative source of what collections they need, as
-well as controlling the versions and sources of those collections.
+alai manages the collections an Ansible project uses, and the dependencies
+and environment of a collection project. Each project is self-contained, so
+environment settings and collections installed elsewhere don't affect it.
+Keeping projects self-contained makes each one the authoritative source of
+the collections it needs and of their versions and sources.
 
 [`alai run`](running-ansible.md) runs the command that follows it with the
 collections described in the lock file generated from
-[alai.toml](alai-toml.md). These commands can be Ansible itself or any other
-tool that needs to interact with the project. alai records the exact versions
-it chose in that lock file, so every machine and CI run gets the same
-collections, and installs them in a fraction of the time `ansible-galaxy`
-takes.
+[alai.toml](alai-toml.md). The command can be Ansible itself or any other
+tool that needs to interact with the project. alai records the exact
+versions it chose in the lock file, so every machine and CI run gets the
+same collections. Installing them takes a fraction of the time
+`ansible-galaxy` takes.
 
-Here `ansible-galaxy` and alai each install `community.general` with
-nothing cached, then alai installs it again into another project from its
-cache. Each was recorded on its own, so neither's downloads slowed the
-other's, and they play side by side from the same start, at the speed they
-ran. The timer on each counts how long its commands have been running:
+In the recording below, `ansible-galaxy` and alai each install
+`community.general` with nothing cached, then alai installs it again into
+another project from its cache. Each tool was recorded on its own, so
+neither's downloads slowed the other's. The two recordings play side by side
+at the speed they ran, and the timer on each counts how long its commands
+have been running:
 
 [ansible-galaxy and alai installing community.general](assets/casts/galaxy-comparison.cast){ .alai-cast }
 
@@ -63,41 +63,40 @@ for collections to be managed there.
 
 ## Installing
 
-The recommended method is to install alai as a tool using
-[uv](https://docs.astral.sh/uv/getting-started/installation/). As alai has
-not been officially published, this is done by targeting the git repo.
+alai isn't published yet, so the recommended way to install it is as a tool
+with [uv](https://docs.astral.sh/uv/getting-started/installation/), from the
+git repository:
 
 ```console
 $ uv tool install https://github.com/alai-sh/alai/archive/refs/heads/main.tar.gz
 ```
 
-uv puts the `alai` command on your `PATH`, in an environment of its own,
-and finds or downloads a Python 3.10 or later for it. To update to the
-latest source, run the same command with `--reinstall`; `uv tool upgrade`
-will not update it, as it does not look for new commits.
-`uv tool uninstall alai-sh` removes it.
+uv puts the `alai` command on your `PATH` in an environment of its own, and
+finds or downloads Python 3.10 or later for it. To update to the latest
+source, run the same command with `--reinstall`, as `uv tool upgrade`
+doesn't look for new commits. To remove alai, run `uv tool uninstall
+alai-sh`.
 
 It is possible to install alai using any other Python package installer, but
 `uv` is recommended as it keeps the environment isolated and puts `alai` on
 the `PATH` automatically.
 
 Part of alai is written in Rust, so installing from source requires the Rust
-toolchain. Rust 1.92 or later is required, with `cargo` on your `PATH`
+toolchain. Rust 1.92 or later is required with `cargo` on your `PATH`
 ([rustup](https://rustup.rs/) installs it), and the build takes a minute or
 so.
 
 !!! note "Until alai is on PyPI"
 
-    Installing from GitHub is temporary. Once alai is published on PyPI,
-    `uv tool install alai-sh` will install it, and `uv tool upgrade alai-sh`
-    will update it. The PyPI release will be a ready-built wheel
-    that is compatible with most Linux and macOS systems and will not require
-    Rust.
+    Installing from GitHub is only needed until alai is published on PyPI.
+    Once it is, `uv tool install alai-sh` will install alai and `uv tool
+    upgrade alai-sh` will update it. The PyPI release will be a ready-built
+    wheel that works on most Linux and macOS systems without Rust.
 
 ## A quick look
 
-Here is a quick example of a playbook project that adds the collections it
-needs. `alai add` will automatically sync and update the lock file.
+In this playbook project, `alai add` adds the collections the project needs,
+then updates the lock file and installs them:
 
 [Adding collections to a new project](casts/add.cast){ .alai-cast }
 
@@ -105,8 +104,8 @@ needs. `alai add` will automatically sync and update the lock file.
 versions chosen. The project's `collections/` directory also contains only
 the collections specified in the lock file, so `ansible-playbook` finds them
 automatically when it runs a playbook in this directory. Once ready, commit
-`alai.toml` and `alai.lock` to your repository; anyone who pulls these changes
-runs `alai sync` to get the same collections.
+`alai.toml` and `alai.lock` to your repository, so anyone who pulls the
+changes can run `alai sync` to get the same collections.
 
 ## Why alai
 
@@ -114,21 +113,20 @@ runs `alai sync` to get the same collections.
   collection and its dependencies. Versions only change when you change
   `alai.toml` or ask to upgrade a collection. `alai sync --locked` can be
   used in environments like CI to check that `alai.toml` and `alai.lock` agree.
-- **Faster installs.** Metadata comes from a static index rather than the
-  Galaxy API. With efficient caching both locally and on the Cloudflare CDN,
-  alai installs and syncs collections super fast. For example, with no
-  cache, installing `community.general` takes about 1.2 s
-  whereas `ansible-galaxy` takes 14.6 s (see
-  [Speed comparison](#speed-comparison)).
+- **Faster installs.** Collection metadata comes from a static index
+  rather than the Galaxy API. Caching it both locally and on the Cloudflare
+  CDN makes alai install and sync collections super fast. With nothing
+  cached, installing `community.general` takes about 1.2 s where
+  `ansible-galaxy` takes 14.6 s (see [Speed comparison](#speed-comparison)).
 - **Reliability.** Every download is checked against the SHA-256 in
   `alai.lock`, and every file against the collection's own `FILES.json`.
-  Installs don't depend on the Galaxy API being available; if Cloudflare
-  goes offline, then we have bigger problems. With `--offline`, alai
-  can install collections from its cache without any internet access at all.
+  Installs don't depend on the Galaxy API being available, and if Cloudflare
+  goes offline then we have bigger problems. When there's no internet
+  access, `--offline` installs collections from alai's cache.
 - **Collections per project.** Each project has its own collections,
-  instead of one shared `~/.ansible/collections` where one project's
-  upgrade changes another's, and `alai run` makes sure Ansible loads only
-  those.
+  instead of one shared `~/.ansible/collections` where one project's upgrade
+  changes another's. `alai run` makes sure Ansible loads only the project's
+  collections.
 - **Collection development.** A
   [collection project](projects.md#collection-project) no longer needs to
   be in the `ansible_collections/<namespace>/<name>` directory layout, and
@@ -148,8 +146,8 @@ run and can be affected by a range of factors, such as CDN caching and
 network load. Take these results with a grain of salt and use them as a
 general indication of the speed differences.
 
-They install `community.general`, a large collection of over 3,500 files, and
-`cisco.ios` with the two collections it depends on:
+The runs install `community.general`, a large collection of over 3,500
+files, and `cisco.ios` with the two collections it depends on:
 
 | `community.general` | ansible-galaxy | alai |
 |---|---|---|
@@ -167,21 +165,21 @@ They install `community.general`, a large collection of over 3,500 files, and
 
 alai's speed comes from a few different things:
 
-- **Static index files.** The index only serves static files: no server is
-  required to process incoming requests, as it is just HTTP content.
+- **Static index files.** The index only serves static files over HTTP, so
+  no server has to process incoming requests.
 - **Efficient index format.** The alai index provides all the data needed to
-  resolve a collection's versions and download details in one request, vs
-  the 2+ requests needed on Galaxy.
+  resolve a collection's versions and download details in one request, where
+  Galaxy needs two or more.
 - **CDN caching.** Cloudflare will cache both the index files and collection
   artifacts near your location, making it quick to respond to requests.
   Popular collections should typically be available in the CDN by default.
 - **Local caching.** alai will cache all collection details and extracted
   collection artifacts in a local cache, so future operations need only 2
   requests at best to ensure the cache is not stale.
-- **Faster tar operations.** Extracting tarballs in Python is slow compared
-  to other languages, so alai uses a Rust native extension to speed up this
-  operation, and larger collections like `community.general` won't slow
-  things down.
+- **Faster tar operations.** Extracting tarballs in Python is slow
+  compared to other languages, so alai extracts them with a Rust native
+  extension. Larger collections like `community.general` don't slow things
+  down as a result.
 
 !!! note "How these were measured"
 
@@ -193,8 +191,8 @@ alai's speed comes from a few different things:
        `ansible-galaxy collection install -r requirements.yml -p ./collections --clear-response-cache`,
        or `alai sync`, with and without a committed `alai.lock`.
     2. The same command again, with nothing to change.
-    3. A first install into a second project, keeping what the first had
-       cached: ansible-galaxy's response cache, and alai's cache.
+    3. A first install into a second project, keeping ansible-galaxy's
+       response cache and alai's cache from the first.
 
 ## Where next
 

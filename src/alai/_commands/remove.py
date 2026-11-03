@@ -26,8 +26,8 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
         help="remove collections from alai.toml, then lock and sync",
         description="Remove collections from the project's alai.toml, then lock and sync, which uninstalls what "
         + "nothing needs any more. A collection is given by its name, even one added from a directory, a tarball or "
-        + "a git repository, whose [project.sources] entry goes with it. Every other line of alai.toml is left as it "
-        + "is.",
+        + "a git repository. Its [project.sources] entry is removed with it, and every other line of alai.toml is left "
+        + "as it is.",
         formatter_class=HelpFormatter,
     )
     remove.add_argument(

@@ -21,7 +21,7 @@ alai installs the collections an Ansible project needs into the project
 itself, in `collections/ansible_collections/` next to your playbooks, where
 `ansible-playbook` finds them with no extra configuration. It records the
 exact versions it chose in a lock file, so every machine and CI run gets the
-same collections, and installs them in a fraction of the time
+same collections. Installing them takes a fraction of the time
 `ansible-galaxy` takes.
 
 <picture>
@@ -38,17 +38,18 @@ same collections, and installs them in a fraction of the time
   the project needs or ask to upgrade. `alai sync --locked` checks in CI that
   `alai.toml` and `alai.lock` agree.
 - **Faster installs.** A first install of `community.general` takes about
-  1.2 s where `ansible-galaxy` takes 14.6 s, and installing it again into
-  another project takes 0.26 s, as each collection is downloaded once and
-  linked from a cache.
+  1.2 s where `ansible-galaxy` takes 14.6 s. Each collection is downloaded
+  once and linked from a cache, so installing it again into another project
+  takes 0.26 s.
 - **Reliability.** Every download is checked against its SHA-256 in the lock,
   and every file against the collection's own `FILES.json`. Installs don't
-  depend on the Galaxy API being available, an interrupted install never
-  leaves half a collection, and `--offline` installs from the cache without
-  connecting at all.
-- **Collections per project.** Each project has its own collections, rather
-  than one shared `~/.ansible/collections` where one project's upgrade
-  changes another's, and `alai run` makes sure Ansible loads only those.
+  depend on the Galaxy API being available, and an interrupted install never
+  leaves half a collection. When there's no network, `--offline` installs
+  from the cache.
+- **Collections per project.** Each project has its own collections,
+  rather than one shared `~/.ansible/collections` where one project's
+  upgrade changes another's. `alai run` makes sure Ansible loads only the
+  project's collections.
 - **Collection development.** A collection project no longer needs to be in
   the `ansible_collections/<namespace>/<name>` directory layout, and its
   dependencies never end up in the collection you build or the files
@@ -59,7 +60,7 @@ same collections, and installs them in a fraction of the time
   `alai sync` work as uv's do for Python packages.
 
 alai runs on Linux and macOS. Other *nix-like platforms should work but
-aren't officially tested, and there's no Windows support, as Ansible itself
+aren't officially tested. There's no Windows support, as Ansible itself
 can't run on Windows.
 
 ## Installing
@@ -71,12 +72,12 @@ from the latest source on GitHub:
 $ uv tool install https://github.com/alai-sh/alai/archive/refs/heads/main.tar.gz
 ```
 
-Run the same command with `--reinstall` to update; `uv tool upgrade` won't,
-as it doesn't look for new commits. Part of alai is written in
-Rust, so installing from source needs Rust 1.92 or later, with `cargo` on your
-`PATH` ([rustup](https://rustup.rs/) installs it). This is temporary: once
-alai is published on PyPI, it will be `uv tool install alai-sh`, from a
-ready-built wheel on most Linux and macOS systems.
+To update, run the same command with `--reinstall`, as `uv tool upgrade`
+doesn't look for new commits. Part of alai is written in Rust, so installing
+from source needs Rust 1.92 or later with `cargo` on your `PATH`
+([rustup](https://rustup.rs/) installs it). Building from source is only
+needed until alai is published on PyPI, when `uv tool install alai-sh` will
+install a ready-built wheel on most Linux and macOS systems.
 
 ## Getting started
 
@@ -93,8 +94,8 @@ Installed 2 collections in 41ms
  + community.general==11.4.9
 ```
 
-`alai.toml` now lists what the project needs, `alai.lock` the exact versions
-chosen, and `collections/` holds them:
+`alai.toml` now lists what the project needs, `alai.lock` has the exact
+versions chosen, and `collections/` holds them:
 
 ```toml
 [project]
@@ -104,8 +105,8 @@ collections = [
 ]
 ```
 
-Commit `alai.toml` and `alai.lock`, and ignore `collections/`. Anyone else,
-or a fresh checkout, gets the same collections with `alai sync`:
+Commit `alai.toml` and `alai.lock`, and ignore `collections/`. Anyone who
+clones the project gets the same collections with `alai sync`:
 
 ```console
 $ alai sync
@@ -154,4 +155,4 @@ Bugs and ideas are welcome in the
 
 ## License
 
-MIT; see [LICENSE](https://github.com/alai-sh/alai/blob/main/LICENSE).
+MIT, see [LICENSE](https://github.com/alai-sh/alai/blob/main/LICENSE).

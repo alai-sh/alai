@@ -74,14 +74,14 @@ def add_global_args(parser: argparse.ArgumentParser, *, suppress: bool) -> None:
         action="count",
         default=0,
         dest=f"verbose:{parser.prog}",
-        help="show debug detail; -vv also traces each step",
+        help="show debug detail, and with -vv trace each step too",
     )
     group.add_argument("-q", "--quiet", action="store_true", default=default(False), help="only show errors")
     group.add_argument(
         "--color",
         choices=("auto", "always", "never"),
         default=default("auto"),
-        help="color the output: auto, the default, colors it on a terminal (env: NO_COLOR, FORCE_COLOR)",
+        help="when to color the output, by default only on a terminal (env: NO_COLOR, FORCE_COLOR)",
     )
     group.add_argument(
         "--no-progress",
@@ -148,7 +148,7 @@ def add_upgrade_args(parser: argparse.ArgumentParser, *, groups: bool = False) -
         metavar="NAME",
         action="append",
         default=[],
-        help="choose the newest version of collection NAME that fits; can be repeated",
+        help="choose the newest version of collection NAME that fits (can be repeated)",
     )
     if groups:
         parser.add_argument(
@@ -156,7 +156,7 @@ def add_upgrade_args(parser: argparse.ArgumentParser, *, groups: bool = False) -
             metavar="NAME",
             action="append",
             default=[],
-            help="choose the newest version of every collection group NAME lists that fits; can be repeated",
+            help="choose the newest version of every collection group NAME lists that fits (can be repeated)",
         )
 
 
@@ -180,21 +180,21 @@ def add_group_args(parser: argparse.ArgumentParser) -> argparse._ArgumentGroup:
     """The options choosing which groups to install, for the commands that sync: ``sync`` and ``run``."""
     groups = parser.add_argument_group("groups")
     groups.add_argument(
-        "--group", metavar="NAME", action="append", default=[], help="also install group NAME; can be repeated"
+        "--group", metavar="NAME", action="append", default=[], help="also install group NAME (can be repeated)"
     )
     groups.add_argument(
         "--no-group",
         metavar="NAME",
         action="append",
         default=[],
-        help="don't install group NAME, even if another option asks for it; can be repeated",
+        help="don't install group NAME, even if another option asks for it (can be repeated)",
     )
     groups.add_argument(
         "--only-group",
         metavar="NAME",
         action="append",
         default=[],
-        help="install only group NAME, without the project's own collections; can be repeated",
+        help="install only group NAME, without the project's own collections (can be repeated)",
     )
     groups.add_argument("--all-groups", action="store_true", help="install every group")
     groups.add_argument("--no-default-groups", action="store_true", help="don't install the 'dev' group")
@@ -216,7 +216,7 @@ def add_reinstall_args(parser: argparse.ArgumentParser) -> None:
         metavar="NAME",
         action="append",
         default=[],
-        help="reinstall collection NAME, even if it's already at the right version; can be repeated",
+        help="reinstall collection NAME, even if it's already at the right version (can be repeated)",
     )
 
 

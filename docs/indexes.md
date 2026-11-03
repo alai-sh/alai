@@ -14,9 +14,9 @@ make that metadata quicker to fetch. Collections are downloaded from the
 location the index gives, and checked against the checksum it lists, which
 `alai.lock` records.
 
-Nothing needs configuring to use it. Other indexes, such as a mirror of
-`index.alai.sh`, can be added with [`[[index]]`](alai-toml.md#index) or
-`--index`, and a collection tied to one with
-[`[project.sources]`](alai-toml.md#projectsources). See
-[Configuration](configuration.md#indexes) for more information around how
-indexes are defined and ordered.
+Nothing needs configuring to use the default index. When you need another
+index, such as a mirror of `index.alai.sh`, add it with
+[`[[index]]`](alai-toml.md#index) or `--index`. A collection can be tied to
+one index with [`[project.sources]`](alai-toml.md#projectsources). See
+[Configuration](configuration.md#indexes) for how indexes are defined and
+ordered.

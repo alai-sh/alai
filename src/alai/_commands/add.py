@@ -25,10 +25,10 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
         "add",
         help="add collections to alai.toml, then lock and sync",
         description="Add collections to the project's alai.toml, then lock and install them. A collection given by "
-        + "name alone is written as >= the version locked for it. A directory, given with a / such as ./ns.col, is "
-        + "the collection it holds, from its galaxy.yml or a built one's MANIFEST.json: its name is added, and "
-        + "[project.sources] takes it from there. So is a built collection's tarball, by path, such as "
-        + "ns-col-1.0.0.tar.gz, or by https:// URL, and a git repository, as "
+        + "name alone is written as >= the version locked for it. A directory given with a /, such as ./ns.col, adds "
+        + "the collection it holds, and a [project.sources] entry says where to find it. The collection's name is "
+        + "read from its galaxy.yml, or from MANIFEST.json for a built one. A built collection's tarball, by path or "
+        + "https:// URL, is added the same way, and so is a git repository given as "
         + "git+URL[@REV][#subdirectory=DIR&version=VERSION]. A directory given with --editable is linked to rather than "
         + "copied, so edits there are seen. Every other line of alai.toml is left as it is.",
         formatter_class=HelpFormatter,
@@ -37,8 +37,8 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
         "requirements",
         metavar="REQUIREMENT",
         nargs="*",
-        help="a collection, such as ansible.posix or 'cisco.ios>=11', a directory holding one, such as ../ns.col, "
-        + "a built collection's tarball, by path or URL, or a git repository, such as "
+        help="a collection such as ansible.posix or 'cisco.ios>=11', a directory holding one such as ../ns.col, "
+        + "a built collection's tarball by path or URL, or a git repository such as "
         + "git+https://github.com/org/repo@v1.0.0",
     )
     add.add_argument(
@@ -46,8 +46,8 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
         metavar="DIR",
         action="append",
         default=[],
-        help="add the collection in DIR as editable, linked to it rather than copied, so edits there are seen; can be "
-        + "repeated",
+        help="add the collection in DIR as editable, so it's linked rather than copied and edits there are seen "
+        + "(can be repeated)",
     )
     add_edit_args(add, verb="add")
     add_global_args(add, suppress=True)

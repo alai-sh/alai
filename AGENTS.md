@@ -18,6 +18,27 @@ reasons, and drop anything a tool now enforces.
   header; copy it from an existing file.
 - What users read is US English: `docs/`, `README.md`, and the CLI's help
   and output. `design/` and code comments can stay as written.
+- How what users read is written:
+  - Start with the situation the reader is in, then what happens or what to
+    do. Describe an option by the problem it solves, such as "When a
+    collection is only needed to run the tests, add it to a group", not as
+    a bare instruction.
+  - Give each sentence one main idea. Join a second point to it with "and",
+    "so", "as", "but", "when" or "which" only when it completes or explains
+    the first, and start a new sentence for the next idea.
+  - Don't join two clauses with `;` or `:`. A `:` that leads into a code
+    block, table or list is fine.
+  - Keep a sentence to two commas or fewer. One that needs more is carrying
+    more than one idea, so split it where the ideas change.
+  - Don't write runs of very short sentences that only make sense together.
+    Join the halves with one of the words above instead.
+  - Don't push a phrase into the middle of a clause, between a subject and
+    its verb or between "which" and what it says. A condition goes at the
+    start or the end of a sentence.
+  - Each sentence should make sense on its own, so name the thing rather
+    than opening with "this", "that" or "it" pointing at the sentence before.
+  - Don't drop words to shorten a phrase, such as "`sha256`, its artifact's"
+    for "the artifact's sha256 checksum".
 - `docs/` is the published user documentation and describes current behaviour
   only, except `docs/roadmap.md`, which summarises what's planned: keep it in
   step with the roadmap in `design/README.md`. Keep it to plain Markdown plus

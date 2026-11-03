@@ -2,8 +2,8 @@
 
 Most alai commands revolve around a single setup, which it calls a "project".
 A project contains the settings and metadata needed by alai to manage the
-requirements of the project itself. Its `alai.toml` also marks which directory
-is the "root" of a project.
+requirements of the project itself. A project's `alai.toml` also marks which
+directory is the "root" of the project.
 
 This page goes through what a project is, how to start and use each kind,
 how a project is found, and where its collections are installed.
@@ -14,14 +14,14 @@ alai supports two kinds of project, a **playbook** project and a
 **collection** project.
 
 A **playbook** project is a project that contains any Ansible content, such
-as playbooks, roles, inventories, and even internal collections. It is
-designed for end users to bring all the components they use together and
-run them through `ansible-playbook` or other Ansible commands.
+as playbooks, roles, inventories and even internal collections. Playbook
+projects are designed for end users to bring all the components they use
+together and run them through `ansible-playbook` or other Ansible commands.
 
 A **collection** project is one used to manage a single collection with its
-own roles, playbooks, and plugins. The overall intent is to publish the
-collection as an individual artifact, so it can be reused by others,
-including in a **playbook** project.
+own roles, playbooks and plugins. The collection is meant to be published as
+an artifact of its own, so others can reuse it, including in a **playbook**
+project.
 
 | | Playbook project | Collection project |
 |---|---|---|
@@ -83,13 +83,13 @@ Commit everything but `collections/`, which `alai sync` creates from
 ```
 
 Run Ansible through `alai run` so it loads only the project's collections.
-Run directly, `ansible-playbook` finds `collections/` beside a playbook at
-the root, but it also loads collections from `~/.ansible/collections` and
-the `ansible` package, and other commands, such as `ansible-doc`, don't look
-in `collections/` at all.
+When run directly, `ansible-playbook` finds `collections/` beside a playbook
+at the root, but it also loads collections from `~/.ansible/collections` and
+the `ansible` package. Other commands such as `ansible-doc` don't look in
+`collections/` at all.
 
-Here `alai add` has added `ansible.utils`, and `site.yml` uses a module from
-it:
+In this example, `alai add` adds `ansible.utils` and `site.yml` uses a
+module from that collection:
 
 [Running a playbook in a playbook project](casts/project-playbook.cast){ .alai-cast }
 
@@ -113,15 +113,16 @@ straight away (see
 
 alai installs collections to the configured `collections_dir`, at
 `<collections_dir>/ansible_collections/<namespace>/<name>`. In a playbook
-project, that's `collections/` in the project root by default.
+project, the default `collections_dir` is `collections/` in the project
+root.
 
 Ansible looks for collections in a `collections/` directory next to the
-playbook it runs, so with a playbook project's playbooks at its root,
-`ansible-playbook` finds them with no extra configuration.
+playbook it runs. When a playbook project keeps its playbooks at its root,
+`ansible-playbook` finds the collections with no extra configuration.
 
-A project that keeps its playbooks in a subdirectory sets
-[`collections_dir`](alai-toml.md#projectcollections_dir) to install next
-to them instead:
+When a project keeps its playbooks in a subdirectory, set
+[`collections_dir`](alai-toml.md#projectcollections_dir) to install the
+collections next to them instead:
 
 ```toml
 # repo/alai.toml
@@ -129,7 +130,8 @@ to them instead:
 collections_dir = "playbooks/collections"
 ```
 
-installs `ansible.posix` and `community.general` to:
+With `ansible.posix` and `community.general` added, the collections are
+installed to:
 
 ```text
 repo/
@@ -145,16 +147,16 @@ repo/
 ```
 
 `collections_dir = "playbooks/collections/ansible_collections"` gives the
-same tree. It doesn't add a second `ansible_collections/` level.
+same tree, as alai doesn't add a second `ansible_collections/` level.
 
 ## Collection project
 
 !!! note "Expect some rough edges"
 
     The mechanism alai uses to set up a collection project and its collection
-    dependencies may not work with some tools. The aim is to ensure this
-    project structure works, but if there are any problems, please report the
-    details to the [issue tracker](https://github.com/alai-sh/alai/issues).
+    dependencies may not work with some tools. The aim is for this project
+    structure to work with every tool, so please report any problems to the
+    [issue tracker](https://github.com/alai-sh/alai/issues).
 
 A typical collection project looks like:
 
@@ -191,8 +193,8 @@ $ touch alai.toml
 $ alai sync
 ```
 
-The `alai.toml` is what makes the checkout a project. A `galaxy.yml` on its
-own isn't enough. Commit `alai.toml` and `alai.lock`, and ignore what
+The `alai.toml` is what makes the checkout a project, as a `galaxy.yml` on
+its own isn't enough. Commit `alai.toml` and `alai.lock`, and ignore what
 ansible-test writes:
 
 ```text
@@ -204,23 +206,23 @@ Unlike in a playbook project, `alai.toml` does not declare the collection's
 requirements or `requires_ansible`, which come from `galaxy.yml` and
 `meta/runtime.yml` (see the table
 [above](#playbook-projects-and-collection-projects)). Setting
-`project.collections` or `project.requires_ansible` there is an error. This
-is to avoid duplicating information that is present in the existing
-collection metadata until alai has a solution that can build a collection
+`project.collections` or `project.requires_ansible` in a collection
+project's `alai.toml` is an error. Keeping them out of `alai.toml` avoids
+duplicating the collection's metadata, until alai can build a collection
 without `ansible-galaxy` and the `galaxy.yml` setup.
 
-Consequently, `alai add` and `alai remove` can only edit groups, with
-`--group`. They cannot edit the `galaxy.yml` dependencies, so edit the file
-manually, then run `alai lock` or `alai sync`.
+In a collection project, `alai add` and `alai remove` can only edit groups
+with `--group`. They can't edit the dependencies in `galaxy.yml`, so edit
+that file by hand, then run `alai lock` or `alai sync`.
 
 Run tools through `alai run ...`, so they see the collection as if it were
 checked out in an `ansible_collections` directory beside its dependencies
 (see [Where collections are installed](#where-collections-are-installed_1)).
 
-In the below example `my_ns.my_col` depends on `ansible.utils` and is set as a
-dependency in `galaxy.yml`. Using `alai run ...` with subsequent commands will
-sync the declared dependencies and set up the environment so commands like
-`ansible-test` and `ansible-playbook` can find them.
+In the example below, `my_ns.my_col` lists `ansible.utils` as a dependency
+in `galaxy.yml`. Each `alai run ...` syncs the declared dependencies and
+sets up the environment, so commands like `ansible-test` and
+`ansible-playbook` can find them:
 
 [Testing and running a collection project](casts/project-collection.cast){ .alai-cast }
 
@@ -229,13 +231,13 @@ for what works with `ansible-test` and what doesn't yet.
 
 ### Where collections are installed
 
-One complicated aspect of using collections in Ansible is that a collection
-must be at a path ending in `ansible_collections/<namespace>/<name>/`, and
-some tools only load its dependencies from the same `ansible_collections`
-directory. So that the project can be cloned anywhere, and its dependencies
-are still seen by those tools, the collections directory is a directory of
-its own in alai's cache, `<cache_dir>/envs/<id>/`, where `<id>` comes from
-the checkout's path. The checkout is linked into it, beside its
+Ansible needs a collection to be at a path ending in
+`ansible_collections/<namespace>/<name>/`, and some tools only load its
+dependencies from the same `ansible_collections` directory. So that a
+collection project can be cloned anywhere and still have those tools see its
+dependencies, its collections directory is a directory of its own in alai's
+cache at `<cache_dir>/envs/<id>/`. The `<id>` comes from the checkout's
+path, and alai links the checkout into that directory beside its
 dependencies:
 
 ```text
@@ -247,27 +249,27 @@ dependencies:
         └── my_col -> ~/my_col
 ```
 
-Ansible sees the collection at that link, so the paths it shows for it are
-there rather than in the checkout. `alai config show` prints the directory
-as `project.collections_dir`.
-[`collections_dir`](alai-toml.md#projectcollections_dir) can still move it,
-but not into the checkout, nor to a directory that holds it.
+Ansible sees the collection at that link, so the paths Ansible shows for the
+collection are under the link rather than in the checkout. `alai config
+show` prints the directory as `project.collections_dir`.
+[`collections_dir`](alai-toml.md#projectcollections_dir) can still move the
+directory, but not into the checkout or a directory that holds the checkout.
 
 ### Collections only the tests need
 
-A collection the tests use, but the collection itself doesn't need, should be
-added to the `dev` group rather than `galaxy.yml`, so it isn't a dependency of
+When the tests use a collection that the collection itself doesn't need, add
+it to the `dev` group rather than `galaxy.yml`, so it isn't a dependency of
 the published collection. `alai sync` and `alai run` install the `dev` group by
 default, so the tests see it with no extra options.
 
-Here the integration target checks its result with a filter from
+In this example, the integration target checks its result with a filter from
 `community.general`:
 
 [A collection project's test-only collections, in its dev group](casts/project-collection-dev-group.cast){ .alai-cast }
 
-To keep some apart, such as collections only one kind of test needs, put
-them in another group with `--group NAME`, and install it with
-`alai sync --group NAME` or `alai run --group NAME ...` (see
+When some collections are only needed by one kind of test, put them in
+another group with `--group NAME`. Install that group with `alai sync
+--group NAME` or `alai run --group NAME ...` (see
 [Groups](managing-collections.md#groups)).
 
 ### In CI
@@ -280,20 +282,19 @@ $ alai sync --locked
 $ alai run ansible-test integration
 ```
 
-`--locked` fails, without installing anything, if `alai.lock` is missing or
+`--locked` fails without installing anything if `alai.lock` is missing or
 out of date with `galaxy.yml` or `alai.toml`.
 
 ## Finding the project root
 
-For alai to manage a project, it must determine what the root of the
-project is. The root is used for things like determining where the lock file is
-created and where collections are installed to. To find the project root,
-alai walks up from the current directory (or from `--project`,
-`ALAI_PROJECT`) to the filesystem root. The root is the nearest directory
-holding an `alai.toml`. Even an empty one works.
+For alai to manage a project, it must find the project's root. The root
+decides where the lock file is created and where collections are installed.
+To find the root, alai walks up from the current directory towards the
+filesystem root, or from `--project` or `ALAI_PROJECT` when given. The root
+is the nearest directory holding an `alai.toml`, even an empty one.
 
-Nothing else marks a project. A subdirectory with its own `ansible.cfg`, or
-an integration test target with one, is still part of the project above it.
+Nothing else marks a project, so a subdirectory or integration test target
+with its own `ansible.cfg` is still part of the project above it.
 The root is the same whichever directory inside the project alai runs from.
 A collection checkout inside a playbook project, such as one in
 `collections_src/`, is part of the playbook project unless it has an
@@ -303,9 +304,10 @@ A repository can hold several projects, each in its own directory with its
 own `alai.toml`. alai uses the nearest one, so each project has its own
 `alai.lock` and collections.
 
-With no `alai.toml` in the current directory or above it, there's no
-project. Commands that need one fail, and say which directory to make the
-project if alai passed a `galaxy.yml` or an `ansible.cfg` on the way up:
+When there's no `alai.toml` in the current directory or above it, there's no
+project and commands that need one fail. If alai passed a `galaxy.yml` or an
+`ansible.cfg` on the way up, the error says which directory to make the
+project:
 
 ```console
 $ cd my_col/plugins
@@ -315,10 +317,10 @@ error: no alai.toml found in ~/my_col/plugins or any directory above it: alai sy
 hint: ~/my_col has a galaxy.yml. To make it a collection project, create an empty alai.toml there
 ```
 
-`--project` only changes where alai starts looking. It doesn't create an
+`--project` only changes where alai starts looking, and doesn't create an
 `alai.toml`.
 
-alai settings are only read from `alai.toml`. alai doesn't read Ansible's
+alai reads its settings only from `alai.toml`, and doesn't read Ansible's
 settings from `ansible.cfg`.
 
 Discovery is the same with `--no-config` and `--config-file`, as those
