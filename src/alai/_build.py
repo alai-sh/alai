@@ -2,14 +2,14 @@
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
 
 """Installing a collection from its source directory as ``ansible-galaxy collection build`` would build it, straight
-into place: the files ``build_ignore`` or the ``manifest`` directives in ``galaxy.yml`` choose, with the
+into place: the files ``build_ignore`` in ``galaxy.yml`` leaves in, with the
 ``MANIFEST.json`` and ``FILES.json`` a built artifact has, and symlinks made self-contained. A path source that isn't
 editable is installed this way, and so is a git source, from its commit's files. The design is in ``design/install.md``.
 
 It's meant to be shared with a future ``alai build``, so the two stay one file selection; following ansible-galaxy
 is where it starts, not a requirement. Checked against ansible-core ``616e7c05e0``
 (``lib/ansible/galaxy/collection/__init__.py``): ``install_src``, ``_build_manifest``, ``_build_files_manifest_walk``,
-``_build_files_manifest_distlib``, ``_build_collection_dir`` and, for symlinks, ``_build_collection_tar``, and
+``_build_collection_dir`` and, for symlinks, ``_build_collection_tar``, and
 ``_normalize_galaxy_yml_manifest`` in ``concrete_artifact_manager.py``.
 """
 
@@ -19,11 +19,9 @@ import collections.abc as _c
 import fnmatch
 import hashlib
 import json
-import logging
 import os
 import shutil
 import stat
-import typing as _t
 
 from alai_core.collection import Manifest
 from alai_core.semver import Version
@@ -48,30 +46,13 @@ _KEYS = (
     "homepage",
     "issues",
     "build_ignore",
-    "manifest",
 )
-"""The keys of ``galaxy.yml`` a build uses: those ``_build_manifest`` writes to ``MANIFEST.json``, and the two that
-choose its files."""
+"""The keys of ``galaxy.yml`` a build uses: those ``_build_manifest`` writes to ``MANIFEST.json``, and ``build_ignore``,
+which chooses its files."""
 _MAX_VALUES = 100_000
 """How many values ``galaxy.yml``'s keys may hold, far more than a real one has, so a few aliases can't make
 ``MANIFEST.json`` enormous."""
 _IGNORED_DIRS = frozenset(("CVS", ".bzr", ".hg", ".git", ".svn", "__pycache__", ".tox"))
-_DOCUMENTABLE = (
-    "become",
-    "cache",
-    "callback",
-    "cliconf",
-    "connection",
-    "filter",
-    "httpapi",
-    "inventory",
-    "lookup",
-    "netconf",
-    "shell",
-    "strategy",
-    "test",
-    "vars",
-)
 """The plugin directories, other than ``modules`` and ``module_utils``, whose YAML files ansible-galaxy's default
 directives include: its plugin loaders' packages that are in ``DOCUMENTABLE_PLUGINS``, worked out from ansible-core
 ``616e7c05e0``."""
@@ -114,7 +95,7 @@ def build(source: str, dest: str, name: str, version: Version, *, umask: int, so
         raise BuildError(
             f"{galaxy_file} is for {found} {info['version']} now, not {name} {version} as locked; run alai lock"
         )
-    files = _files(source, info, galaxy_file)
+    files = _files(source, info)
     files.sort(key=lambda entry: str(entry["name"]))
 
     files_json = json.dumps({"files": files, "format": _FORMAT}, indent=True, sort_keys=True).encode()
@@ -248,7 +229,7 @@ def _json_object(data: bytes, path: str) -> dict[str, object]:
 
 def _galaxy_info(galaxy_file: str) -> dict[str, object]:
     """``galaxy.yml`` with ansible-galaxy's defaults filled in: lists for its list keys (a single value wrapped in
-    one), an empty mapping for ``dependencies``, None for any other string, and ``manifest`` only when it's set."""
+    one), an empty mapping for ``dependencies``, and None for any other string."""
     from ._galaxy import galaxy_metadata
 
     metadata = galaxy_metadata(galaxy_file)
@@ -266,8 +247,6 @@ def _galaxy_info(galaxy_file: str) -> dict[str, object]:
         info.setdefault(key, {})
     for key in ("description", "license_file", "repository", "documentation", "homepage", "issues"):
         info.setdefault(key, None)
-    if info["build_ignore"] and "manifest" in info:
-        raise BuildError(f'{galaxy_file}: "build_ignore" and "manifest" are mutually exclusive')
     return info
 
 
@@ -326,20 +305,15 @@ def _entry(name: str, ftype: str, chksum: str | None = None) -> dict[str, object
     }
 
 
-def _files(source: str, info: dict[str, object], galaxy_file: str) -> list[dict[str, object]]:
-    files = [_entry(".", "dir")]
-    if "manifest" in info:
-        files.extend(_files_from_directives(source, info, galaxy_file))
-    else:
-        build_ignore = [str(v) for v in as_list(info["build_ignore"]) or []]
-        files.extend(_files_walked(source, f"{info['namespace']}-{info['name']}", build_ignore))
-    return files
+def _files(source: str, info: dict[str, object]) -> list[dict[str, object]]:
+    build_ignore = [str(v) for v in as_list(info["build_ignore"]) or []]
+    return [_entry(".", "dir"), *_files_walked(source, f"{info['namespace']}-{info['name']}", build_ignore)]
 
 
 def _files_walked(source: str, artifact_prefix: str, build_ignore: list[str]) -> _c.Iterator[dict[str, object]]:
     """Every file and directory ``build_ignore`` and the defaults don't leave out, as
-    ``_build_files_manifest_walk`` lists them: a directory link inside the collection is listed but not walked, and
-    one leading outside it is skipped."""
+    ``_build_files_manifest_walk`` lists them, but for hidden directories at the root, which it keeps: a directory
+    link inside the collection is listed but not walked, and one leading outside it is skipped."""
     from ._output import warn
 
     patterns = [
@@ -360,7 +334,9 @@ def _files_walked(source: str, artifact_prefix: str, build_ignore: list[str]) ->
             path = os.path.join(directory, item)
             rel = os.path.join(relative, item) if relative else item
             if os.path.isdir(path):
-                if item in _IGNORED_DIRS or any(fnmatch.fnmatch(rel, p) for p in patterns):
+                # Hidden directories at the root are tooling (CI, editors, caches, venvs), never collection content.
+                hidden_root = not relative and item.startswith(".")
+                if hidden_root or item in _IGNORED_DIRS or any(fnmatch.fnmatch(rel, p) for p in patterns):
                     continue
                 if os.path.islink(path) and not inside(os.path.realpath(path), os.path.realpath(source)):
                     warn(f"skipping {path}, a symlink to a directory outside the collection, as ansible-galaxy does")
@@ -372,78 +348,6 @@ def _files_walked(source: str, artifact_prefix: str, build_ignore: list[str]) ->
                 yield _entry(rel, "file", _sha256(path))
 
     return walk(source, "")
-
-
-def _files_from_directives(source: str, info: dict[str, object], galaxy_file: str) -> list[dict[str, object]]:
-    """The files the ``manifest`` key's directives choose, through distlib as ``_build_files_manifest_distlib`` uses
-    it, with ansible-galaxy's default directives around them unless ``omit_default_directives`` is set."""
-    # distlib has no type information; only these two names are used.
-    from distlib import DistlibException  # pyright: ignore[reportMissingTypeStubs]
-    from distlib.manifest import Manifest  # pyright: ignore[reportMissingTypeStubs]
-
-    control: object = info["manifest"]
-    settings = as_table({} if control is None else control)
-    if settings is None or set(settings) - {"directives", "omit_default_directives"}:
-        raise BuildError(f'{galaxy_file}: "manifest" may only have "directives" and "omit_default_directives"')
-    given = as_list(settings.get("directives", []))
-    omit = settings.get("omit_default_directives", False)
-    if given is None:
-        raise BuildError(f'{galaxy_file}: "manifest.directives" must be a list')
-    if not isinstance(omit, bool):
-        raise BuildError(f'{galaxy_file}: "manifest.omit_default_directives" must be a boolean')
-    directives = [str(d) for d in given]
-    if omit and not directives:
-        raise BuildError(
-            f'{galaxy_file}: "manifest.omit_default_directives" is true but "manifest.directives" is empty, which '
-            + "would install nothing"
-        )
-
-    if not omit:
-        defaults = [
-            "include meta/*.yml",
-            "include *.txt *.md *.rst *.license COPYING LICENSE",
-            "recursive-include .reuse **",
-            "recursive-include LICENSES **",
-            "recursive-include tests **",
-            "recursive-include docs **.rst **.yml **.yaml **.json **.j2 **.txt **.license",
-            "recursive-include roles **.yml **.yaml **.json **.j2 **.license",
-            "recursive-include playbooks **.yml **.yaml **.json **.license",
-            "recursive-include changelogs **.yml **.yaml **.license",
-            "recursive-include plugins */**.py */**.license",
-        ]
-        if info["license_file"]:
-            defaults.append(f"include {info['license_file']}")
-        defaults.extend(f"recursive-include plugins/{plugin} **.yml **.yaml" for plugin in _DOCUMENTABLE)
-        defaults.extend(
-            [
-                "recursive-include plugins/modules **.ps1 **.yml **.yaml **.license",
-                "recursive-include plugins/module_utils **.ps1 **.psm1 **.cs **.license",
-            ]
-        )
-        directives = [
-            *defaults,
-            *directives,
-            f"exclude galaxy.yml galaxy.yaml MANIFEST.json FILES.json {info['namespace']}-{info['name']}-*.tar.gz",
-            "recursive-exclude tests/output **",
-            "global-exclude /.* /__pycache__ *.pyc *.pyo *.bak *~ *.swp",
-        ]
-
-    # distlib logs a warning for each default directive that matches nothing, which most collections have plenty of.
-    logging.getLogger("distlib.manifest").setLevel(logging.ERROR)
-    manifest = Manifest(source)
-    directive = ""
-    try:
-        for directive in directives:
-            manifest.process_directive(directive)
-    except DistlibException as e:
-        raise BuildError(f"{galaxy_file}: invalid manifest directive '{directive}': {e}") from e
-    # The collection's own directory is among them, so FILES.json lists "." twice, as ansible-galaxy's does.
-    entries: list[dict[str, object]] = []
-    paths = _t.cast("list[str]", manifest.sorted(wantdirs=True))
-    for path in paths:
-        relative = os.path.relpath(path, source)
-        entries.append(_entry(relative, "dir") if os.path.isdir(path) else _entry(relative, "file", _sha256(path)))
-    return entries
 
 
 def _sha256(path: str) -> str | None:

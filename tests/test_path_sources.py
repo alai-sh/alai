@@ -400,9 +400,9 @@ class TestBuild:
         assert (target / "plugins" / "modules" / "run.sh").stat().st_mode & 0o100
         assert not (target / "notes.txt").stat().st_mode & 0o100
 
-    def test_manifest_directives(self, project: Path) -> None:
-        _ = collection_source(project.parent / "src", extra="manifest:\n  directives:\n    - exclude notes.txt\n")
-        (project.parent / "src" / "extra.cfg").write_text("x\n")
+    def test_manifest_ignored(self, project: Path) -> None:
+        extra = "build_ignore: ['*.txt']\nmanifest:\n  directives:\n    - exclude README.md\n"
+        _ = collection_source(project.parent / "src", extra=extra)
         write_sources(project, '"ns.src" = { path = "../src" }')
 
         assert main(["sync", "-q"]) == 0
@@ -411,8 +411,22 @@ class TestBuild:
             f["name"]
             for f in json.loads((installed_at(project / "collections", "ns.src") / "FILES.json").read_text())["files"]
         ]
-        # "." twice, as ansible-galaxy lists it with manifest directives.
-        assert names == [".", ".", "README.md", "plugins", "plugins/modules", "plugins/modules/hello.py"]
+        assert sorted(names) == [".", "README.md", "plugins", "plugins/modules", "plugins/modules/hello.py"]
+
+    def test_hidden_root_dirs_skipped(self, project: Path) -> None:
+        src = collection_source(project.parent / "src")
+        for hidden in (src / ".github", src / "roles" / "r" / "files" / ".config"):
+            hidden.mkdir(parents=True)
+            _ = (hidden / "x.yml").write_text("x\n")
+        _ = (src / ".ansible-lint").write_text("x\n")
+        write_sources(project, '"ns.src" = { path = "../src" }')
+
+        assert main(["sync", "-q"]) == 0
+
+        target = installed_at(project / "collections", "ns.src")
+        assert not (target / ".github").exists()
+        assert (target / "roles" / "r" / "files" / ".config" / "x.yml").is_file()
+        assert (target / ".ansible-lint").is_file()
 
     def test_missing_build_metadata(self, project: Path, capsys: pytest.CaptureFixture[str]) -> None:
         src = project.parent / "src"
@@ -433,26 +447,6 @@ class TestBuild:
         assert main(["sync"]) == EXIT_ERROR
 
         assert "its aliases expand to far more than any collection's metadata has" in capsys.readouterr().err
-
-    @pytest.mark.parametrize(
-        ("extra", "message"),
-        [
-            ("build_ignore: ['x']\nmanifest: {}\n", '"build_ignore" and "manifest" are mutually exclusive'),
-            ("manifest: {bad: 1}\n", '"manifest" may only have "directives" and "omit_default_directives"'),
-            ("manifest: {directives: x}\n", '"manifest.directives" must be a list'),
-            ("manifest: {omit_default_directives: 1}\n", '"manifest.omit_default_directives" must be a boolean'),
-            ("manifest: {omit_default_directives: true}\n", "which would install nothing"),
-            ("manifest: {directives: ['frobnicate x']}\n", "invalid manifest directive 'frobnicate x'"),
-        ],
-    )
-    def test_refused(self, project: Path, capsys: pytest.CaptureFixture[str], extra: str, message: str) -> None:
-        _ = collection_source(project.parent / "src", extra=extra)
-        write_sources(project, '"ns.src" = { path = "../src" }')
-
-        assert main(["sync"]) == EXIT_ERROR
-
-        assert message in capsys.readouterr().err
-        assert not os.path.lexists(installed_at(project / "collections", "ns.src"))
 
     def test_outside_directory_link_skipped(self, project: Path, capsys: pytest.CaptureFixture[str]) -> None:
         src = collection_source(project.parent / "src")

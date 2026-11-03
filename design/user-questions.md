@@ -285,6 +285,26 @@ copy a collection again?
 
 See [install.md](install.md#when-a-copy-is-made-again).
 
+## `manifest` in galaxy.yml
+
+**Today:** installing a collection from its source directory or a git
+source ignores the `manifest` key in `galaxy.yml` and walks the directory
+with `build_ignore` and ansible-galaxy's defaults (2026-11-04). A
+collection that relies on the directives to leave files out gets them
+installed too.
+
+**The alternative:** apply the directives as `ansible-galaxy` does,
+through distlib, with its default directive list.
+
+Hidden directories at the root of the collection are always left out,
+which ansible-galaxy keeps.
+
+**Ask:** does anyone install from source a collection whose extra files
+cause trouble, and would `build_ignore` not do for them? Does anyone need
+a hidden root directory, such as `.reuse`, in a local install?
+
+See [install.md](install.md#copying-a-directory-as-its-artifact-would-be).
+
 ## A tarball that changed
 
 **Today:** a `{ path = "<file>" }` tarball is pinned by its checksum, so

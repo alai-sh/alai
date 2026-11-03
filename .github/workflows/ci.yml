@@ -10,7 +10,8 @@ on:
       - main
     tags:
       # A version tag also drafts its GitHub release, with the sdist and wheels; publishing that draft publishes to PyPI
-      # (publish.yml). git tag -a v1.0.0 -m "v1.0.0" && git push origin v1.0.0
+      # (publish.yml). Tag the release with the PEP 440 version alai reports, as the build checks they match.
+      #   TAG="v$(uv run alai --version | cut -d ' ' -f 2)" && git tag -a "$TAG" -m "$TAG" && git push origin "$TAG"
       - 'v*'
 
   pull_request:
@@ -326,13 +327,7 @@ jobs:
             *) ABI=cp310-abi3 ;;
           esac
           docker run --rm -v "${PWD}:/src" -w /src -e "ABI=${ABI}" -e PYTHON_VERSION "ghcr.io/astral-sh/uv:${UV_VERSION}-alpine" sh -euc '
-            # cargo builds alai-core from its git commit, as it has no wheels to install until it is on PyPI. The cargo
-            # Alpine packages is older than the rust-version alai-core needs, so rustup installs the one
-            # rust-toolchain.toml pins.
-            apk add --no-cache git rustup gcc musl-dev
-            rustup-init -y -q --profile minimal --default-toolchain none
-            . "${HOME}/.cargo/env"
-            rustup toolchain install
+            apk add --no-cache git
             # What alai and the test group need, at the versions uv.lock pins, as tox installs them on the other jobs;
             # then the wheel for this ABI on its own.
             export UV_PROJECT_ENVIRONMENT=/venv

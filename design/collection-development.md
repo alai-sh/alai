@@ -460,7 +460,8 @@ to the editor's port. Not tried with an editor attached.
 - **Whether `alai build` replaces `ansible-galaxy collection build`.** Two
   directions:
   - **A drop-in for `ansible-galaxy collection build`.** It reads
-    `galaxy.yml`, honours `build_ignore` and the manifest directives, and
+    `galaxy.yml`, honours `build_ignore` (not the `manifest` directives, see
+    [install.md](install.md#copying-a-directory-as-its-artifact-would-be)), and
     produces the same artifact. `galaxy.yml` stays the source of truth, and
     a collection built with alai can still be built without it.
 
