@@ -31,7 +31,7 @@ $ touch alai.toml
 $ alai add cisco.ios 'community.general<11'
 ```
 
-[Adding collections to a new project](casts/add.cast){ .alai-cast }
+[Adding collections to a new project](casts/add.cast){ .cli-cast }
 
 Commit `alai.toml` and `alai.lock`, and ignore the collections directory,
 as `alai sync` creates it:
@@ -74,7 +74,7 @@ directory, a tarball or a git repository instead of an index, see
 
 ### Removing a collection
 
-[Removing a collection](casts/remove.cast){ .alai-cast }
+[Removing a collection](casts/remove.cast){ .cli-cast }
 
 `alai remove` uninstalls the collection and whatever only it needed, but
 dependencies that another collection still needs stay installed. To remove a
@@ -138,7 +138,7 @@ $ alai sync --upgrade                        # everything
 `alai lock` takes the same options to update `alai.lock` without
 installing:
 
-[Upgrading one collection, then the rest](casts/lock.cast){ .alai-cast }
+[Upgrading one collection, then the rest](casts/lock.cast){ .cli-cast }
 
 An upgrade still stays within what `alai.toml` asks for. To move past an
 upper bound, such as `<11`, change the requirement with `alai add`.
@@ -217,7 +217,7 @@ Adding a collection keeps every other locked version that still fits.
 `-P NAME` upgrades `NAME` along the way, even when `NAME` isn't one of the
 collections being added:
 
-[Upgrading a locked collection while adding another](casts/add-upgrade.cast){ .alai-cast }
+[Upgrading a locked collection while adding another](casts/add-upgrade.cast){ .cli-cast }
 
 !!! warning "Check the diff"
 
@@ -262,7 +262,7 @@ exactly what `alai.lock` lists. When `alai.lock` is missing or `alai.toml`
 has changed since the lock was written, `alai sync` locks first as `alai
 lock` would:
 
-[Installing a project's collections](casts/sync.cast){ .alai-cast }
+[Installing a project's collections](casts/sync.cast){ .cli-cast }
 
 An installed collection is matched by the version in its `MANIFEST.json`,
 not its files. `--reinstall-collection NAME` installs a collection again

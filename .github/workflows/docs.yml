@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-    # Everything but what can't change the docs: the CLI reference and its recordings come from src/, scripts/ and
+    # Everything but what can't change the docs: the CLI reference and its recordings come from src/, docs/ and
     # the index helpers in tests/, so a list of what to include would miss whatever they come to use. The last
     # pattern to match a path wins.
     paths: &docs-paths
@@ -16,6 +16,7 @@ on:
       - "!.gitignore"
       - "!.pre-commit-config.yaml"
       - "!AGENTS.md"
+      - "!CHANGELOG.md"
       - "!LICENSE"
       - "!README.md"
 

@@ -50,7 +50,7 @@ index that has it (see [Configuration](configuration.md#indexes)).
 `alai sync` downloads exactly that version and checks it against the
 checksum:
 
-[Installing a collection, and what it needs, from the index](casts/source-index.cast){ .alai-cast }
+[Installing a collection, and what it needs, from the index](casts/source-index.cast){ .cli-cast }
 
 When a collection must come from one index, `{ index = "<name>" }` takes it
 only from the [`[[index]]`](alai-toml.md#index) with that name. A dependency
@@ -105,7 +105,7 @@ collections = [
 "namespace.name" = { path = "<dir>" }
 ```
 
-[Adding a collection from a directory](casts/source-directory.cast){ .alai-cast }
+[Adding a collection from a directory](casts/source-directory.cast){ .cli-cast }
 
 How the directory is installed depends on what it holds:
 
@@ -177,7 +177,7 @@ collections = [
 "namespace.name" = { path = "<dir>", editable = true }
 ```
 
-[Adding a collection from a directory, editable](casts/source-editable.cast){ .alai-cast }
+[Adding a collection from a directory, editable](casts/source-editable.cast){ .cli-cast }
 
 Use one for:
 
@@ -263,7 +263,7 @@ collections = [
 The tarball must be gzipped, as `ansible-galaxy collection build` writes it.
 Anything else is refused before it's read or downloaded whole.
 
-[Adding a collection from a tarball](casts/source-tarball.cast){ .alai-cast }
+[Adding a collection from a tarball](casts/source-tarball.cast){ .cli-cast }
 
 The tarball is installed exactly as one from an index is. Only the files
 listed in its `FILES.json` are created, and each one is checked against its
@@ -315,7 +315,7 @@ collections = [
 "community.general" = { git = "ssh://git@github.com/ansible-collections/community.general", rev = "13.5.0" }
 ```
 
-[Adding a collection from a git repository](casts/source-git.cast){ .alai-cast }
+[Adding a collection from a git repository](casts/source-git.cast){ .cli-cast }
 
 The following values can also be set with the git source type:
 

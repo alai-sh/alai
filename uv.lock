@@ -2,7 +2,8 @@ version = 1
 revision = 5
 requires-python = ">=3.10"
 resolution-markers = [
-    "python_full_version >= '3.13'",
+    "python_full_version >= '3.15'",
+    "python_full_version >= '3.13' and python_full_version < '3.15'",
     "python_full_version == '3.12.*'",
     "python_full_version == '3.11.*'",
     "python_full_version < '3.11'",
@@ -59,8 +60,9 @@ dev = [
     { name = "trustme" },
 ]
 docs = [
-    { name = "ansible-core", marker = "python_full_version >= '3.13'" },
-    { name = "zensical", marker = "python_full_version >= '3.11'" },
+    { name = "ansible-core", marker = "python_full_version >= '3.15'" },
+    { name = "cli-recorder", marker = "python_full_version >= '3.15'" },
+    { name = "zensical", marker = "python_full_version >= '3.15'" },
 ]
 test = [
     { name = "pytest" },
@@ -86,8 +88,9 @@ dev = [
     { name = "trustme" },
 ]
 docs = [
-    { name = "ansible-core", marker = "python_full_version >= '3.13'", specifier = "==2.22.0rc1" },
-    { name = "zensical", marker = "python_full_version >= '3.11'", specifier = ">=0.0.71" },
+    { name = "ansible-core", marker = "python_full_version >= '3.15'", specifier = "==2.22.0" },
+    { name = "cli-recorder", marker = "python_full_version >= '3.15'", git = "https://github.com/alai-sh/cli-recorder" },
+    { name = "zensical", marker = "python_full_version >= '3.15'", specifier = ">=0.0.71" },
 ]
 test = [
     { name = "pytest", specifier = ">=8" },
@@ -97,7 +100,7 @@ test = [
 
 [[package]]
 name = "ansible-core"
-version = "2.22.0rc1"
+version = "2.22.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cryptography" },
@@ -106,9 +109,9 @@ dependencies = [
     { name = "pyyaml" },
     { name = "resolvelib" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/94/bb/5b3403e57f7bb44527532c2c226835698cc556cc028129e4d1f981c64225/ansible_core-2.22.0rc1.tar.gz", hash = "sha256:51d6903d48636b3e627bd312b4f97bd4d8945e35d4e1b1809c7648cf0e978947", size = 3479506, upload-time = "2026-10-13T23:16:32.865Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9d/9c/320090b2f1542122259cd759d5148678fd98945913837ee05718920f73ea/ansible_core-2.22.0.tar.gz", hash = "sha256:bf50b4a0cfa985e30585c7ba301897ea7050d224ca49d2816cab10e33a160e1c", size = 3476434, upload-time = "2026-11-02T17:35:11.837Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b8/be/c28612d93ca4e52a3846fa260500a23cd01d72a2409d88ffeba4a603f3d2/ansible_core-2.22.0rc1-py3-none-any.whl", hash = "sha256:88ac5f8c91a3dbeb2ee756649550d7e1097f2ced2ac53dd21597989d3a1686cb", size = 2488454, upload-time = "2026-10-13T23:16:31.098Z" },
+    { url = "https://files.pythonhosted.org/packages/87/98/3dc2d37181dc6a4b39d7badffaa0ef6e95be638d618372a11c316a2f8983/ansible_core-2.22.0-py3-none-any.whl", hash = "sha256:8285d4cc81c3e3eb2d954e75531724fe0ae154d228475638123451f034a74657", size = 2488530, upload-time = "2026-11-02T17:35:09.491Z" },
 ]
 
 [[package]]
@@ -259,6 +262,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/4e/b5/721b8799b04bf9afe
 wheels = [
     { url = "https://files.pythonhosted.org/packages/db/3c/33bac158f8ab7f89b2e59426d5fe2e4f63f7ed25df84c036890172b412b5/cfgv-3.5.0-py2.py3-none-any.whl", hash = "sha256:a8dc6b26ad22ff227d2634a65cb388215ce6cc96bbcc5cfde7641ae87e8dacc0", size = 7445, upload-time = "2025-11-19T20:55:50.744Z" },
 ]
+
+[[package]]
+name = "cli-recorder"
+version = "0.1.0"
+source = { git = "https://github.com/alai-sh/cli-recorder#ab75da4d0f2edb0ffc6a6556845e2fa8c15dd2a7" }
 
 [[package]]
 name = "click"
@@ -537,7 +545,8 @@ name = "filelock"
 version = "4.2.4"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13'",
+    "python_full_version >= '3.15'",
+    "python_full_version >= '3.13' and python_full_version < '3.15'",
     "python_full_version == '3.12.*'",
     "python_full_version == '3.11.*'",
 ]
@@ -797,7 +806,8 @@ name = "platformdirs"
 version = "4.13.5"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13'",
+    "python_full_version >= '3.15'",
+    "python_full_version >= '3.13' and python_full_version < '3.15'",
     "python_full_version == '3.12.*'",
     "python_full_version == '3.11.*'",
 ]
@@ -839,7 +849,8 @@ name = "pre-commit"
 version = "4.7.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13'",
+    "python_full_version >= '3.15'",
+    "python_full_version >= '3.13' and python_full_version < '3.15'",
     "python_full_version == '3.12.*'",
     "python_full_version == '3.11.*'",
 ]
@@ -907,7 +918,8 @@ name = "pyproject-api"
 version = "1.12.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13'",
+    "python_full_version >= '3.15'",
+    "python_full_version >= '3.13' and python_full_version < '3.15'",
     "python_full_version == '3.12.*'",
     "python_full_version == '3.11.*'",
 ]
@@ -1173,7 +1185,8 @@ name = "tox"
 version = "4.67.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13'",
+    "python_full_version >= '3.15'",
+    "python_full_version >= '3.13' and python_full_version < '3.15'",
     "python_full_version == '3.12.*'",
     "python_full_version == '3.11.*'",
 ]
@@ -1215,7 +1228,8 @@ name = "tox-uv"
 version = "1.37.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13'",
+    "python_full_version >= '3.15'",
+    "python_full_version >= '3.13' and python_full_version < '3.15'",
     "python_full_version == '3.12.*'",
     "python_full_version == '3.11.*'",
 ]
@@ -1249,7 +1263,8 @@ name = "tox-uv-bare"
 version = "1.37.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13'",
+    "python_full_version >= '3.15'",
+    "python_full_version >= '3.13' and python_full_version < '3.15'",
     "python_full_version == '3.12.*'",
     "python_full_version == '3.11.*'",
 ]

@@ -95,7 +95,7 @@ the `ansible` package. Other commands such as `ansible-doc` don't look in
 In this example, `alai add` adds `ansible.utils` and `site.yml` uses a
 module from that collection:
 
-[Running a playbook in a playbook project](casts/project-playbook.cast){ .alai-cast }
+[Running a playbook in a playbook project](casts/project-playbook.cast){ .cli-cast }
 
 `alai run` can also be used to run other Ansible commands, such as an ad hoc
 `ansible` command (see [Running Ansible](running-ansible.md)).
@@ -111,7 +111,7 @@ editable directory, so `collections/` links to it and edits take effect
 straight away (see
 [Collections in your own repository](collection-sources.md#collections-in-your-own-repository)):
 
-[Using a collection kept in the project's repository](casts/project-playbook-local-collection.cast){ .alai-cast }
+[Using a collection kept in the project's repository](casts/project-playbook-local-collection.cast){ .cli-cast }
 
 ### Where collections are installed
 
@@ -228,7 +228,7 @@ in `galaxy.yml`. Each `alai run ...` syncs the declared dependencies and
 sets up the environment, so commands like `ansible-test` and
 `ansible-playbook` can find them:
 
-[Testing and running a collection project](casts/project-collection.cast){ .alai-cast }
+[Testing and running a collection project](casts/project-collection.cast){ .cli-cast }
 
 See [In a collection project](running-ansible.md#in-a-collection-project)
 for what works with `ansible-test` and what doesn't yet.
@@ -269,7 +269,7 @@ default, so the tests see it with no extra options.
 In this example, the integration target checks its result with a filter from
 `community.general`:
 
-[A collection project's test-only collections, in its dev group](casts/project-collection-dev-group.cast){ .alai-cast }
+[A collection project's test-only collections, in its dev group](casts/project-collection-dev-group.cast){ .cli-cast }
 
 When some collections are only needed by one kind of test, put them in
 another group with `--group NAME`. Install that group with `alai sync

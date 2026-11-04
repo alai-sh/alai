@@ -39,7 +39,7 @@ also install to.
 asked for and what that needs, keeps installed versions that still fit those
 requirements, and removes nothing else:
 
-[Installing into a project's collections directory](casts/collection-install.cast){ .alai-cast }
+[Installing into a project's collections directory](casts/collection-install.cast){ .cli-cast }
 
 `-U` upgrades everything it resolves to the newest versions that fit, and
 `-P NAME` upgrades only `NAME`. `--reinstall` reinstalls everything it
@@ -60,7 +60,7 @@ nor changed.
 collections named, and only those collections. Their dependencies stay
 installed. A collection that isn't installed is skipped with a warning.
 
-[Uninstalling from a project's collections directory](casts/collection-uninstall.cast){ .alai-cast }
+[Uninstalling from a project's collections directory](casts/collection-uninstall.cast){ .cli-cast }
 
 ## Listing
 
@@ -79,7 +79,7 @@ collection matches its entry in the lock:
 | `≠` | Installed, but not as `alai.lock` has it | What the lock has instead, such as another version, source or commit of the same repository, or that its source has changed since it was copied |
 | `✗` | Locked, but not installed | The locked version |
 
-[Listing a project's collections against its lock](casts/collection-list.cast){ .alai-cast }
+[Listing a project's collections against its lock](casts/collection-list.cast){ .cli-cast }
 
 `alai sync` makes the directory match the lock, which changes every row not
 marked `✓`. Without an `alai.lock`, there are no markers, only the collections
@@ -199,12 +199,12 @@ In the following example, `alai.toml` is in the parent directory, so running
 `alai collection install ...` from `playbooks/` installs the collections in
 the directory containing the `alai.toml`.
 
-[Installing from a directory inside the project](casts/collection-install-subdirectory.cast){ .alai-cast }
+[Installing from a directory inside the project](casts/collection-install-subdirectory.cast){ .cli-cast }
 
 With no project, use `--collections-dir` to say which collections directory
 to use.
 
-[Installing outside a project](casts/collection-install-outside.cast){ .alai-cast }
+[Installing outside a project](casts/collection-install-outside.cast){ .cli-cast }
 
 ## Collections whose version can't be read
 

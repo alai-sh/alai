@@ -10,7 +10,7 @@ role or playbook, and "where did it go?" for one that was moved or removed.
 index, so it finds collections you haven't installed and lists the ones you
 have first.
 
-[Finding plugins](casts/find.cast){ .alai-cast }
+[Finding plugins](casts/find.cast){ .cli-cast }
 
 ## What to search for
 
@@ -50,27 +50,27 @@ Here `docker_container_info` is a file in the current directory, so the
 unquoted `*_info` becomes `docker_container_info` before alai runs, and
 alai searches for that one name:
 
-[Why globs need quotes](casts/find-quoting.cast){ .alai-cast }
+[Why globs need quotes](casts/find-quoting.cast){ .cli-cast }
 
 ## Examples
 
 Search by part of a name, or the whole name with `-x`, or only what's
 installed with `--installed`:
 
-[Searching by part of a name, or the whole name](casts/find-search.cast){ .alai-cast }
+[Searching by part of a name, or the whole name](casts/find-search.cast){ .cli-cast }
 
 Narrow it to a type, or several:
 
-[Searching one type, or several](casts/find-types.cast){ .alai-cast }
+[Searching one type, or several](casts/find-types.cast){ .cli-cast }
 
 Quoted globs match short names, or full names when they have dots:
 
-[Searching with globs](casts/find-globs.cast){ .alai-cast }
+[Searching with globs](casts/find-globs.cast){ .cli-cast }
 
 Given a full name, `alai find` shows that plugin's details, such as whether
 it's installed and where it redirects:
 
-[An old name that no longer leads anywhere, and an ansible.legacy name](casts/find-redirects.cast){ .alai-cast }
+[An old name that no longer leads anywhere, and an ansible.legacy name](casts/find-redirects.cast){ .cli-cast }
 
 When piping to other tools such as [jq](https://jqlang.org/), `--color`
 and `--output-format` control how the output looks:
@@ -194,7 +194,7 @@ Searching for a full name shows the details of that plugin, such as:
   at every step it passes.
 - **Hint**: Extra information on how to install or use the plugin.
 
-[A plugin's details and where its redirects lead](casts/find-detail.cast){ .alai-cast }
+[A plugin's details and where its redirects lead](casts/find-detail.cast){ .cli-cast }
 
 A redirect can lead to another that redirects again, and alai shows the
 whole chain so it's clear how Ansible resolves the plugin name.

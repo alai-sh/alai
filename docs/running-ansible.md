@@ -16,7 +16,7 @@ $ alai run ansible-playbook site.yml -i inventory.ini
 In the example below, a project adds the `ansible.utils` collection and then
 runs an ad hoc `ansible` command with a module from that collection:
 
-[Running a module from a collection just added](casts/run.cast){ .alai-cast }
+[Running a module from a collection just added](casts/run.cast){ .cli-cast }
 
 `alai run` first syncs the project as [`alai sync`](cli.md#alai-sync) does.
 It then runs the command with environment variables that make Ansible find
@@ -145,7 +145,7 @@ $ alai run ansible-playbook my_ns.my_col.playbook
 When a playbook is run by its path, plugin short names in it no longer
 resolve to the collection that holds the playbook.
 
-[Running a collection's playbook by name](casts/run-collection-playbook.cast){ .alai-cast }
+[Running a collection's playbook by name](casts/run-collection-playbook.cast){ .cli-cast }
 
 Ansible loads the collection project through its link in the [collections
 directory](projects.md#collection-project), so every path Ansible shows for
