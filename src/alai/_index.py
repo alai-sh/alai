@@ -4,7 +4,7 @@
 """Reading an alai index: ``config.json``, ``collections.json`` and the per-collection index files.
 
 The format, and reading each file, is alai-core's (``alai_core.index``). Where the files are, and the URLs and caching,
-is this module's. The design is in ``design/index-client.md``.
+is this module's.
 """
 
 from __future__ import annotations

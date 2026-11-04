@@ -94,7 +94,7 @@ def with_root(
 ) -> tuple[RawManifest, Manifest]:
     """``raw``, the project's ``alai.toml``, as resolved: as it is, or in a collection project, with
     the requirements and ``requires_ansible`` its ``galaxy.yml`` and ``meta/runtime.yml`` give, which ``alai.toml``
-    mustn't repeat. See ``design/collection-development.md``. ``local`` is another manifest's ``local``, read from
+    mustn't repeat. ``local`` is another manifest's ``local``, read from
     the same sources moments ago, to use rather than read them again."""
     galaxy_file = settings.project.collection_file
     if galaxy_file is None:

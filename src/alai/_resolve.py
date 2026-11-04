@@ -3,7 +3,7 @@
 
 """Resolving a project's requirements to one version of each collection.
 
-The rules are in ``design/resolver.md``. This builds the table the search runs over: every collection the project's
+The rules are in ``docs/managing-collections.md``. This builds the table the search runs over: every collection the project's
 requirements can reach, each version with its dependencies and, where a rule rules a version out (yanked, unreadable
 metadata, needing a newer ansible-core), why. PubGrub, in the native extension, chooses from the table in one call, or
 proves there's no choice and explains why.

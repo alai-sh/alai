@@ -243,8 +243,9 @@ requirement on it accepts, with these exceptions:
 - A collection comes from its [`[project.sources]`](alai-toml.md#projectsources)
   index, or the first configured index that has it.
 
-When no version fits, `alai lock` lists every requirement on the
-collection and where it came from, and writes nothing.
+When no version fits, `alai lock` writes nothing. It explains the conflict
+step by step, from the versions available back to the project's own
+requirements.
 
 `--check` resolves as usual but writes nothing, and exits 1 if `alai.lock`
 is missing or would change. A newer release alone doesn't count, as locked

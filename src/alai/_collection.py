@@ -3,7 +3,7 @@
 
 """``alai collection install`` and ``uninstall``: collections installed by hand, outside the project's requirements and
 lock, as ``uv pip install`` and ``uv pip uninstall`` are. The project's ``alai.toml`` still marks it and its settings
-apply; without one, ``--collections-dir`` says where. The design is in ``design/install.md``."""
+apply; without one, ``--collections-dir`` says where."""
 
 from __future__ import annotations
 

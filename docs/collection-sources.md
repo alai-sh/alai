@@ -272,7 +272,10 @@ checksum. The collection's version and dependencies come from its
 dependencies come from indexes unless they have a source of their own.
 
 `alai.lock` records the tarball's checksum and size, as it does an index's
-artifact.
+artifact. When a tarball is rebuilt at the same path, its checksum no longer
+matches, so alai stops with an error until you run `alai lock -P NAME` to
+lock the new file. A URL is only downloaded again by `alai lock -P NAME` or
+`-U`, so a file replaced behind the same URL isn't picked up before then.
 
 Use one for:
 

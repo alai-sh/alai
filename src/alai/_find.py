@@ -3,8 +3,7 @@
 
 """``alai find``: plugins by name from the indexes' plugin indexes and the installed collections, installed ones first.
 
-Results go to stdout, a list of matches or, for a FQCN, the plugin's details; everything else to stderr. The design is
-in ``design/find.md``.
+Results go to stdout, a list of matches or, for a FQCN, the plugin's details; everything else to stderr.
 """
 
 from __future__ import annotations
@@ -335,7 +334,7 @@ def _print_json(
     order then every plugin their redirects reach, each once, and whether each collection mentioned is installed.
 
     Nothing alai concludes, such as whether a plugin is usable or where its route breaks, is included: that's the text
-    output's job, and a script follows ``routing.redirect`` itself. The design is in ``design/find.md``.
+    output's job, and a script follows ``routing.redirect`` itself.
     """
     plugins: dict[tuple[str, str], dict[str, object]] = {}
     collections: set[str] = set()

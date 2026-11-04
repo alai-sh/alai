@@ -7,7 +7,7 @@ routing as ansible-core does, and ranking what's found.
 The format is ``plugins.md`` in galaxy-sync's ``docs/index-spec/``. The file is ~100k lines, so a search scans the
 raw bytes for the query and parses only the lines that contain it, both in alai-core (``alai_core.plugins``).
 What needs every line, which collections look like copies of others, is worked out once per change to the file and
-cached. The design is in ``design/find.md``.
+cached.
 """
 
 from __future__ import annotations

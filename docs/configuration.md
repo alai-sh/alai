@@ -182,7 +182,9 @@ connections.
 
 To trust other CA certificates, set `SSL_CERT_FILE` to a PEM bundle or
 `SSL_CERT_DIR` to a directory of PEM files. Either one replaces the system's
-certificates rather than adding to them.
+certificates rather than adding to them. A [git source](collection-sources.md#a-git-repository)
+is fetched by git, which has TLS settings of its own, so a private CA for a
+git host goes in git's `http.sslCAInfo` setting or `GIT_SSL_CAINFO`.
 
 If a system has no CA certificates, alai fails with a TLS error saying so.
 Install the system's CA certificates, such as with the `ca-certificates`

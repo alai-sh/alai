@@ -3,7 +3,7 @@
 
 """A collection directory's own metadata, read as ansible-galaxy and ansible-core read it: ``galaxy.yml`` for a source,
 such as a collection project or a path source, or ``MANIFEST.json`` for a built or installed collection, with
-``meta/runtime.yml`` for either. The design is in ``design/collection-development.md`` and ``design/install.md``.
+``meta/runtime.yml`` for either.
 """
 
 from __future__ import annotations

@@ -3,7 +3,7 @@
 
 //! alai's native code, the private module `alai._native`: resolving collection versions, HTTP, and placing a cached
 //! collection's files, with the GIL released where it can be.
-//! `src/alai/_native.pyi` types it for Python. The design is in `design/performance.md`.
+//! `src/alai/_native.pyi` types it for Python.
 
 // alai runs where Ansible's control node does, which isn't Windows: a build there from the sdist is told so here,
 // rather than failing on the Unix APIs the modules use.

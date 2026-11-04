@@ -5,8 +5,7 @@
 
 Every ``ansible_collections/<namespace>/<name>`` directory is an installed collection, its version read from its
 ``MANIFEST.json``, as uv reads each package's installed metadata: a locked collection at its locked version is left as
-it is, anything else under a locked name is replaced, and with ``exact`` anything the lock doesn't list is removed. The
-design is in ``design/install.md``.
+it is, anything else under a locked name is replaced, and with ``exact`` anything the lock doesn't list is removed.
 """
 
 from __future__ import annotations

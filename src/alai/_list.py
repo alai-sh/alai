@@ -2,8 +2,7 @@
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
 
 """``alai collection list``: the collections in the collections directory, whatever installed them, as ``uv pip list``
-lists an environment's packages, each compared with ``alai.lock`` when the project has one. The design is in
-``design/list.md``."""
+lists an environment's packages, each compared with ``alai.lock`` when the project has one."""
 
 from __future__ import annotations
 

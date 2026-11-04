@@ -4,8 +4,7 @@
 """Live progress on stderr, as uv draws it: a spinner or bar for the current phase, with a line under it for each
 item in flight, redrawn in place and cleared when the phase ends, for its summary line to take its place.
 
-Only drawn on a terminal (see ``_output.progress_enabled``); everywhere else a ``Task`` just records its state. The
-design is in ``design/output.md``.
+Only drawn on a terminal (see ``_output.progress_enabled``); everywhere else a ``Task`` just records its state.
 """
 
 from __future__ import annotations

@@ -4,7 +4,7 @@
 //! Choosing one version of every collection: PubGrub over a table Python builds, every version with its dependencies
 //! and, for versions a rule leaves out, why. Python has already fetched the index files, applied overrides and
 //! decided which versions can't be used (yanked, unreadable, needing a newer ansible-core); this chooses, or proves
-//! there's no choice and says why in uv's words. The design is in `design/resolver.md`.
+//! there's no choice and says why in uv's words.
 
 use std::cmp::Reverse;
 use std::collections::{HashMap, HashSet};

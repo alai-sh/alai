@@ -4,8 +4,7 @@
 """Fetching files from ``http(s)://`` and ``file://`` URLs, with an on-disk cache revalidated by ETag.
 
 Requests run on a pool of threads sharing one ``_native.HttpClient``, so callers can start many fetches and wait on them
-as they need each one; over HTTP/2, a host's requests share one connection. The design is in
-``design/index-client.md``.
+as they need each one; over HTTP/2, a host's requests share one connection.
 """
 
 from __future__ import annotations

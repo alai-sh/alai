@@ -4,7 +4,7 @@
 """Installing a collection from its source directory as ``ansible-galaxy collection build`` would build it, straight
 into place: the files ``build_ignore`` in ``galaxy.yml`` leaves in, with the
 ``MANIFEST.json`` and ``FILES.json`` a built artifact has, and symlinks made self-contained. A path source that isn't
-editable is installed this way, and so is a git source, from its commit's files. The design is in ``design/install.md``.
+editable is installed this way, and so is a git source, from its commit's files.
 
 It's meant to be shared with a future ``alai build``, so the two stay one file selection; following ansible-galaxy
 is where it starts, not a requirement. Checked against ansible-core ``616e7c05e0``

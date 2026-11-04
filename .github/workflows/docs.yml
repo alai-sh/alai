@@ -12,7 +12,6 @@ on:
       - "!.github/**"
       - .github/workflows/docs.yml
       - "!.vscode/**"
-      - "!design/**"
       - "!.gitignore"
       - "!.pre-commit-config.yaml"
       - "!AGENTS.md"
