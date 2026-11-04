@@ -4,7 +4,7 @@
 """``alai collection path``: where a collection's files are on disk, for tools such as alai-doc to read: the
 collection project's own checkout, else installed, else its locked version, else the newest cached, else the latest
 on the indexes, downloaded into the cache. ``ansible.builtin`` and ``eda.builtin`` are ansible-core's and
-ansible-rulebook's source (``_builtin``). The design is in ``design/collection-path.md``."""
+ansible-rulebook's source (``_builtin``)."""
 
 from __future__ import annotations
 

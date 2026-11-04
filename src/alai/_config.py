@@ -446,7 +446,7 @@ def load_settings(
 
 def _default_collections_dir(project: Project, cache_dir: str | None) -> str:
     """``<root>/collections``, or for a collection project a tree of its own in the cache, keyed by the checkout's
-    path, as the checkout can't hold its own dependencies: see ``design/collection-development.md``."""
+    path, as the checkout can't hold its own dependencies."""
     if project.collection_file is None:
         return os.path.join(project.root, "collections")
     if cache_dir is None:
@@ -473,9 +473,8 @@ def _check_tree(root: str, collections_dir: str, source: str) -> None:
 def find_project(start: str | os.PathLike[str]) -> Project:
     """Find the project root, the nearest directory holding an ``alai.toml``, by walking up from ``start``.
 
-    A ``galaxy.yml`` beside it makes it a collection project. Nothing else marks a root (see
-    ``design/configuration.md``), but with no ``alai.toml``, the nearest ``galaxy.yml``, else ``ansible.cfg``, is kept
-    for the error to suggest.
+    A ``galaxy.yml`` beside it makes it a collection project. Nothing else marks a root, but with no
+    ``alai.toml``, the nearest ``galaxy.yml``, else ``ansible.cfg``, is kept for the error to suggest.
     """
     start = os.path.realpath(start)
     galaxy: str | None = None

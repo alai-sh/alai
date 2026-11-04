@@ -2,7 +2,7 @@
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
 
 """``alai add`` and ``alai remove``: change the project's requirements in ``alai.toml``, then lock and sync, as
-``uv add`` and ``uv remove`` do. The design is in ``design/manifest-editing.md``."""
+``uv add`` and ``uv remove`` do."""
 
 from __future__ import annotations
 

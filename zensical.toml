@@ -1,6 +1,5 @@
 # The user documentation at docs.alai.sh, built from docs/ with
-# `uv run --group docs zensical build --strict`. Design notes live in design/
-# and aren't published.
+# `uv run --group docs zensical build --strict`.
 
 [project]
 site_name = "alai"

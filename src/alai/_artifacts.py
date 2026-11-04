@@ -4,8 +4,7 @@
 """The artifact cache: each collection version downloaded once, checked against its ``cksum``, and kept extracted.
 
 An extracted collection is ``<cache_dir>/collections-v1/<cksum>/``, keyed by the artifact's SHA-256 alone, so the same
-artifact from two indexes is stored once. It's trusted once it's there, as uv trusts its cache. The design is in
-``design/install.md``.
+artifact from two indexes is stored once. It's trusted once it's there, as uv trusts its cache.
 """
 
 from __future__ import annotations
@@ -262,8 +261,7 @@ def extract(
     collection, checked on disk as well as by name, since one symlink can lead another out. Files are ``0644``, or
     ``0755`` if the tarball marks them executable, and directories ``0755``, both masked by the process umask: not the
     tarball's own modes. More than ``limit`` bytes unpacked from the tarball is refused, counting what a hard link
-    copies and a symlink's checksum reads; 0 is no limit. The work is alai-core's (``alai_core.artifact.extract``); the
-    design is in ``design/performance.md``.
+    copies and a symlink's checksum reads; 0 is no limit. The work is alai-core's (``alai_core.artifact.extract``).
     """
     # Imported here, so commands that never extract don't load it.
     from alai_core.artifact import ExtractError

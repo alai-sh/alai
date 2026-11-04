@@ -3,9 +3,8 @@
 
 """Time ``alai sync`` against ``ansible-galaxy collection install`` installing the same collections.
 
-The method and the last results are in ``design/performance.md``. Each run starts with a new, empty home directory, so
-neither tool's cache carries over (ansible-galaxy keeps everything under ``~/.ansible``, alai under ``~/.cache/alai``),
-and does, per tool:
+Each run starts with a new, empty home directory, so neither tool's cache carries over (ansible-galaxy keeps
+everything under ``~/.ansible``, alai under ``~/.cache/alai``), and does, per tool:
 
 1. a first install into a new project, ansible-galaxy clearing its response cache;
 2. the same command again, with nothing to change;
@@ -16,8 +15,8 @@ always does. ansible-core is installed into a temporary virtual environment with
 this runs in, so run it from the repository with the working tree's alai installed. It talks to Galaxy and
 index.alai.sh, so the results depend on both:
 
-    uv run python design/benchmarks/ansible_galaxy.py community.general
-    uv run python design/benchmarks/ansible_galaxy.py cisco.ios --runs 3 --ansible-core 2.20.0
+    uv run python scripts/benchmark_ansible_galaxy.py community.general
+    uv run python scripts/benchmark_ansible_galaxy.py cisco.ios --runs 3 --ansible-core 2.20.0
 """
 
 from __future__ import annotations
@@ -127,7 +126,7 @@ def _timed(command: list[str], cwd: pathlib.Path, home: pathlib.Path) -> float:
 
 
 def _table(collections: list[str], results: dict[str, tuple[list[float], list[float], list[float]]]) -> str:
-    """The medians as a Markdown table, with each one's range, for design/performance.md."""
+    """The medians as a Markdown table, with each one's range, for the note on docs/index.md."""
 
     def cell(times: list[float]) -> str:
         return f"{statistics.median(times):.2f} s ({min(times):.2f} to {max(times):.2f})"

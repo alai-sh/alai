@@ -63,7 +63,7 @@ class TestFindProject:
 
     @pytest.mark.parametrize("name", ["ansible.cfg", "galaxy.yml"])
     def test_other_files_not_a_root(self, tmp_path: Path, name: str) -> None:
-        """Only alai.toml marks a root: a nearer ansible.cfg or galaxy.yml is passed over (design/configuration.md)."""
+        """Only alai.toml marks a root: a nearer ansible.cfg or galaxy.yml is passed over."""
         config = write_file(tmp_path / "repo" / "alai.toml")
         write_file(tmp_path / "repo" / "playbooks" / name)
 

@@ -1,5 +1,5 @@
 # The terminal recordings in the docs, made by python -m cli_recorder record on
-# every docs build. See design/documentation.md.
+# every docs build.
 #
 # Each [[recording]] runs in a new home directory, with an empty cache, against
 # the local index below, which docs/recordings.py serves. cli-recorder's README
@@ -646,7 +646,8 @@ commands = ["alai config show"]
 # into a project of their own, and alai then into another project from its
 # cache, played as if started at the same moment. Each is recorded on its own,
 # so neither's downloads slow the other's. Record it again by hand, with
-# `python -m cli_recorder record galaxy-comparison`.
+# `python -m cli_recorder record galaxy-comparison`, which needs network access
+# and asg (`cargo install asg --locked`) for the README's SVG.
 [[recording]]
 name = "galaxy-comparison"
 title = "ansible-galaxy and alai installing community.general"

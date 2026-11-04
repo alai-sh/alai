@@ -2,7 +2,7 @@
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
 
 """What ``alai sync`` installs and how: choosing groups as uv does, downloading only what isn't cached, then removing
-and installing. The design is in ``design/install.md``."""
+and installing."""
 
 from __future__ import annotations
 

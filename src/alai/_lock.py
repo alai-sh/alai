@@ -3,8 +3,8 @@
 
 """The lockfile, ``alai.lock``: what ``alai lock`` resolved, for ``alai sync`` to install.
 
-The format and why it's shaped this way are in ``design/lockfile.md``. It's TOML, read and written by the native
-extension's ``toml_edit``, with the layout fixed so changes to a lock are small diffs.
+It's TOML, read and written by the native extension's ``toml_edit``, with the layout fixed so changes to a lock are
+small diffs.
 """
 
 from __future__ import annotations

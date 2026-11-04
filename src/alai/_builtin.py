@@ -3,8 +3,7 @@
 
 """The plugins ansible-core and ansible-rulebook ship, ``ansible.builtin`` and ``eda.builtin``, for ``alai find`` and
 ``alai collection path``: read from each one's latest sdist on the Python package index (``python_index``) by
-alai-core's extractor. The sdist's source and its plugin index lines are kept in the cache. The design is in
-``design/find.md``."""
+alai-core's extractor. The sdist's source and its plugin index lines are kept in the cache."""
 
 from __future__ import annotations
 

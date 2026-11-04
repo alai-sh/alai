@@ -2,7 +2,7 @@
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
 
 """The environment ``alai run`` runs a command in and ``alai env`` prints: Ansible pointed at the project's collections
-directory alone. Only environment variables, so the two always agree. The design is in ``design/run.md``."""
+directory alone. Only environment variables, so the two always agree."""
 
 from __future__ import annotations
 
@@ -75,8 +75,9 @@ def _map_module_sources(value: str, links: _c.Sequence[tuple[str, str]]) -> str 
     matches the editor's breakpoints, set in the checkout, against that by prefix, so they never hit. The
     configuration's ``source_mapping``, from paths the editor knows to paths Ansible knows, translates it.
     ansible-test fills it only with paths it maps to themselves. Best effort, as the setting is ansible-core's
-    internal one, until ansible-test maps a content root reached through a link itself: see
-    ``design/collection-development.md``.
+    internal one. Remove it, with its tests and the note in ``docs/editors.md``, once ansible-test's
+    ``DebuggableProfile.get_source_mapping`` maps a content root reached through a link to its real path, or
+    ansible-core keys the AnsiballZ source mapping by real path.
     """
     try:
         config = json.loads(value)

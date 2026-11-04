@@ -7,7 +7,7 @@ CLI as uv and ansible-galaxy run it, so the user's SSH config, agent, ``known_ho
 A commit's files are ``<cache_dir>/git-v1/<url hash>/<commit>/``, fetched at depth 1 into a temporary directory, with
 ``.git`` removed, and renamed into place, as an artifact is extracted: there's no repository shared between runs, so
 nothing needs a lock. Over ssh, one connection per host is shared by every git command in a run, so a key is used, and
-an agent asks to approve it, once. The design is in ``design/install.md``.
+an agent asks to approve it, once.
 """
 
 from __future__ import annotations
