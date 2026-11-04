@@ -1,29 +1,13 @@
-# The terminal recordings in the docs, made by scripts/cli_recordings.py on every
-# docs build. See design/documentation.md.
+# The terminal recordings in the docs, made by python -m cli_recorder record on
+# every docs build. See design/documentation.md.
 #
 # Each [[recording]] runs in a new home directory, with an empty cache, against
-# the local index below. `cd` in its commands changes the directory the next ones
-# run in, as in a shell:
+# the local index below, which docs/recordings.py serves. cli-recorder's README
+# describes the keys a recording takes. alai's fixture adds one more:
 #
-#   name         the file it's written to, docs/casts/<name>.cast
-#   title        shown above it
-#   directory    where it starts, in the home directory: "project" unless set
-#   files        files written to that directory first, by relative path
-#   tarballs     built collections' tarballs written to that directory first,
-#                by relative path, each { name, version, dependencies, files }
-#   setup        shell commands run before recording starts, not shown
-#   commands     shell commands typed and run in the recording, in order
-#   columns      the terminal's width, 80 unless set: wider for output that
-#                fills the terminal, such as alai find's, at the cost of
-#                smaller text, as the player fits each to the page's width
-#   live         true to run against the real indexes rather than the local
-#                one: recorded only when named, into docs/assets/casts/ to be
-#                committed, with SVGs of it for the README
-#   panes        in place of commands, a split screen: [[recording.panes]]
-#                tables, top to bottom, each with a title, a directory
-#                relative to where the recording starts, "." unless set, and
-#                its commands, recorded one pane after another and played
-#                as if they ran at once
+#   tarballs     built collections' tarballs written to the recording's
+#                directory first, by relative path, each
+#                { name, version, dependencies, files }
 
 # The index's plugin index, plugins.jsonl, for `alai find`: lines taken from
 # the real index, for the collections below and a few more.
@@ -662,7 +646,7 @@ commands = ["alai config show"]
 # into a project of their own, and alai then into another project from its
 # cache, played as if started at the same moment. Each is recorded on its own,
 # so neither's downloads slow the other's. Record it again by hand, with
-# `python scripts/cli_recordings.py galaxy-comparison`.
+# `python -m cli_recorder record galaxy-comparison`.
 [[recording]]
 name = "galaxy-comparison"
 title = "ansible-galaxy and alai installing community.general"

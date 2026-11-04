@@ -2,7 +2,7 @@
 description: Every alai command and the options it takes.
 ---
 
-<!-- Written by scripts/cli_reference.py from alai's argument parser: edit the help there, not here. -->
+<!-- Written by python -m cli_recorder reference from alai's argument parser. Edit the help there, not here. -->
 
 # CLI reference
 
@@ -57,18 +57,18 @@ Every command takes these, before or after its name.
 
 Add collections to the project's alai.toml, then lock and install them. A collection given by name alone is written as >= the version locked for it. A directory given with a /, such as ./ns.col, adds the collection it holds, and a [project.sources] entry says where to find it. The collection's name is read from its galaxy.yml, or from MANIFEST.json for a built one. A built collection's tarball, by path or https:// URL, is added the same way, and so is a git repository given as git+URL[@REV][#subdirectory=DIR&version=VERSION]. A directory given with `--editable` is linked to rather than copied, so edits there are seen. Every other line of alai.toml is left as it is.
 
-[Adding collections to a new project](casts/add.cast){ .alai-cast }
+[Adding collections to a new project](casts/add.cast){ .cli-cast }
 
-[Upgrading a locked collection while adding another](casts/add-upgrade.cast){ .alai-cast }
+[Upgrading a locked collection while adding another](casts/add-upgrade.cast){ .cli-cast }
 
 Here `ansible.posix` is locked at 2.1.0, and 2.2.2 has since been released.
-{: .alai-cast-description }
+{: .cli-cast-description }
 
 Adding `cisco.ios` leaves `ansible.posix` at 2.1.0. `cisco.ios` needs `ansible.posix>=2.0.0`, which 2.1.0 still satisfies, and alai doesn't change a locked version that still works, even when a newer one is out.
-{: .alai-cast-description }
+{: .cli-cast-description }
 
 Adding `community.general -P ansible.posix` adds `community.general` and upgrades `ansible.posix`, and only `ansible.posix`, to the newest version that fits, 2.2.2. `-P` takes the name of the collection to upgrade, which needn't be one being added: here it's already in `alai.toml`. Give `-P` again to upgrade more than one, or use `-U` to upgrade every collection.
-{: .alai-cast-description }
+{: .cli-cast-description }
 
 ```console
 $ alai add [OPTIONS] [REQUIREMENT ...]
@@ -129,25 +129,25 @@ Also takes the [global options](#global-options).
 
 Install collections and what they need into the collections directory, keeping installed versions that fit. Nothing else is removed. Outside a project there's no collections directory to use, so `--collections-dir` or the collections_dir setting has to say where.
 
-[Installing into a project's collections directory](casts/collection-install.cast){ .alai-cast }
+[Installing into a project's collections directory](casts/collection-install.cast){ .cli-cast }
 
 An `alai.toml`, even an empty one, marks the project's directory, and collections are installed into `collections/` beside it.
-{: .alai-cast-description }
+{: .cli-cast-description }
 
-[Installing from a directory inside the project](casts/collection-install-subdirectory.cast){ .alai-cast }
+[Installing from a directory inside the project](casts/collection-install-subdirectory.cast){ .cli-cast }
 
 alai looks for the project from the current directory upwards, so run from `playbooks/`, it finds the `alai.toml` above and installs into the project's `collections/`, not one in `playbooks/`.
-{: .alai-cast-description }
+{: .cli-cast-description }
 
-[Installing where there's only an ansible.cfg](casts/collection-install-ansible-cfg.cast){ .alai-cast }
+[Installing where there's only an ansible.cfg](casts/collection-install-ansible-cfg.cast){ .cli-cast }
 
 An `ansible.cfg` doesn't mark a project, only an `alai.toml` does. Without one, alai names the nearest `ansible.cfg` or `galaxy.yml` it passed, as the directory most likely to be the project's root. An empty `alai.toml` there makes it one.
-{: .alai-cast-description }
+{: .cli-cast-description }
 
-[Installing outside a project](casts/collection-install-outside.cast){ .alai-cast }
+[Installing outside a project](casts/collection-install-outside.cast){ .cli-cast }
 
 With no `alai.toml` in the current directory or above it, there's no project, and alai won't guess where to install. `--collections-dir` says where.
-{: .alai-cast-description }
+{: .cli-cast-description }
 
 ```console
 $ alai collection install [OPTIONS] [REQUIREMENT ...]
@@ -186,12 +186,12 @@ Also takes the [global options](#global-options).
 
 Uninstall collections from the collections directory. What they depend on stays. A collection is given by its name, even one installed from a directory, a tarball or a git repository. Outside a project there's no collections directory to use, so `--collections-dir` or the collections_dir setting has to say where.
 
-[Uninstalling from a project's collections directory](casts/collection-uninstall.cast){ .alai-cast }
+[Uninstalling from a project's collections directory](casts/collection-uninstall.cast){ .cli-cast }
 
 Only the collections named are uninstalled: the collections `cisco.ios` needed stay installed.
-{: .alai-cast-description }
+{: .cli-cast-description }
 
-[Uninstalling a collection outside a project](casts/collection-uninstall-outside.cast){ .alai-cast }
+[Uninstalling a collection outside a project](casts/collection-uninstall-outside.cast){ .cli-cast }
 
 ```console
 $ alai collection uninstall [OPTIONS] NAME [NAME ...]
@@ -216,10 +216,10 @@ Also takes the [global options](#global-options).
 
 List the collections in the collections directory, whatever installed them. When the project has an alai.lock, each is shown as locked, not in it, installed differently, or locked but not installed. Outside a project there's no collections directory to use, so `--collections-dir` or the collections_dir setting has to say where.
 
-[Listing a project's collections against its lock](casts/collection-list.cast){ .alai-cast }
+[Listing a project's collections against its lock](casts/collection-list.cast){ .cli-cast }
 
 `cisco.ios` and what it needs are locked. `community.docker` was installed by hand, `ansible.posix` was installed by hand at an older version, and `ansible.utils` was uninstalled, so `alai sync` would change all three.
-{: .alai-cast-description }
+{: .cli-cast-description }
 
 ```console
 $ alai collection list [OPTIONS]
@@ -289,7 +289,7 @@ Also takes the [global options](#global-options).
 
 Show the project, config files and settings alai resolves from the current directory. With KEY, print only that setting's value, for scripts.
 
-[Showing the settings in effect](casts/config-show.cast){ .alai-cast }
+[Showing the settings in effect](casts/config-show.cast){ .cli-cast }
 
 ```console
 $ alai config show [OPTIONS] [key]
@@ -341,12 +341,12 @@ Also takes the [global options](#global-options).
 
 Find plugins, roles and playbooks by name in the files of the installed collections and in the indexes' plugin lists. The ones in installed collections and ansible.builtin are listed first. QUERY is part of a name (user finds win_user too), a glob ('*_info', 'community.general.*') or a FQCN. A FQCN shows that plugin's details, such as where its redirects lead and how to install it.
 
-[Finding plugins](casts/find.cast){ .alai-cast }
+[Finding plugins](casts/find.cast){ .cli-cast }
 
 `community.general` 11.0.0 is installed. Its `docker_container` moved in 2.0.0: it redirects to `community.docker`'s, so a playbook that uses either name keeps working once `community.docker` is installed. `to_` matches part of each filter's name, underlined on a terminal.
-{: .alai-cast-description }
+{: .cli-cast-description }
 
-[A plugin's details and where its redirects lead](casts/find-detail.cast){ .alai-cast }
+[A plugin's details and where its redirects lead](casts/find-detail.cast){ .cli-cast }
 
 ```console
 $ alai find [OPTIONS] QUERY
@@ -386,7 +386,7 @@ Also takes the [global options](#global-options).
 
 Resolve the collections the project's alai.toml and its groups ask for to one version of each, and write them to alai.lock beside it. Versions already in alai.lock are kept while they still fit.
 
-[Upgrading one collection, then the rest](casts/lock.cast){ .alai-cast }
+[Upgrading one collection, then the rest](casts/lock.cast){ .cli-cast }
 
 ```console
 $ alai lock [OPTIONS]
@@ -415,7 +415,7 @@ Also takes the [global options](#global-options).
 
 Remove collections from the project's alai.toml, then lock and sync, which uninstalls what nothing needs any more. A collection is given by its name, even one added from a directory, a tarball or a git repository. Its [project.sources] entry is removed with it, and every other line of alai.toml is left as it is.
 
-[Removing a collection](casts/remove.cast){ .alai-cast }
+[Removing a collection](casts/remove.cast){ .cli-cast }
 
 ```console
 $ alai remove [OPTIONS] NAME [NAME ...]
@@ -458,10 +458,10 @@ Also takes the [global options](#global-options).
 
 Lock and install what alai.lock lists as alai sync does, then run COMMAND with Ansible loading collections from the project's collections directory and nowhere else. Collections there that alai.lock doesn't list are kept with a warning. `--inexact` keeps them without the warning, and `--exact` removes them. Everything after COMMAND is passed to it.
 
-[Running an Ansible module from a collection just added](casts/run.cast){ .alai-cast }
+[Running an Ansible module from a collection just added](casts/run.cast){ .cli-cast }
 
 `alai run` runs Ansible where it can find the collections alai manages.
-{: .alai-cast-description }
+{: .cli-cast-description }
 
 ```console
 $ alai run [OPTIONS] COMMAND ...
@@ -533,7 +533,7 @@ Also takes the [global options](#global-options).
 
 Install the collections alai.lock lists into the collections directory, and remove those it doesn't, so the directory matches the lock. alai.lock is written first if it's missing or alai.toml has changed since. The project's collections are installed with the 'dev' group, if there is one.
 
-[Installing a project's collections](casts/sync.cast){ .alai-cast }
+[Installing a project's collections](casts/sync.cast){ .cli-cast }
 
 ```console
 $ alai sync [OPTIONS]

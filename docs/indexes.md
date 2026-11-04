@@ -4,13 +4,6 @@ description: How alai finds collections through an index.
 
 # Indexes
 
-!!! warning "Still in flux"
-
-    The index format, and how alai uses indexes, are still being worked
-    out and may change without notice. This page will be filled in once
-    they settle. Until then it only covers what you need to use the
-    default index.
-
 alai reads which collections exist, their versions and what they depend on
 from an index, rather than from the Galaxy API. The default is
 `https://index.alai.sh/`, a static mirror of Galaxy with a few changes to
@@ -24,3 +17,14 @@ index, such as a mirror of `index.alai.sh`, add it with
 one index with [`[project.sources]`](alai-toml.md#projectsources). See
 [Configuration](configuration.md#indexes) for how indexes are defined and
 ordered.
+
+## Running your own index
+
+[alai-index](https://alai.sh/alai-index/) builds an index as a tree of static
+files, from collection tarballs or by mirroring a Galaxy server, ready to
+publish to a web server or bucket. Its docs also hold the specification:
+
+- [Index format](https://alai.sh/alai-index/index-format/): the files an
+  index serves and how alai reads them.
+- [Plugin index](https://alai.sh/alai-index/plugin-index/): the plugin lists
+  `alai find` searches.

@@ -6,8 +6,9 @@ coverage.xml
 .tox/
 site/
 
-# Recorded on every docs build by scripts/cli_recordings.py.
+# Made on every docs build by python -m cli_recorder.
 docs/casts/
+docs/assets/cli-recorder/
 
 # The native extension, built into the source tree by an editable install (uv sync).
 src/alai/*.so

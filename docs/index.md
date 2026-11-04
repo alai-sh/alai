@@ -43,7 +43,7 @@ neither's downloads slowed the other's. The two recordings play side by side
 at the speed they ran, and the timer on each counts how long its commands
 have been running:
 
-[ansible-galaxy and alai installing community.general](assets/casts/galaxy-comparison.cast){ .alai-cast }
+[ansible-galaxy and alai installing community.general](assets/casts/galaxy-comparison.cast){ .cli-cast }
 
 Everything alai manages is a project, of which there are currently two types
 (see [Projects](projects.md#playbook-projects-and-collection-projects)):
@@ -98,7 +98,7 @@ so.
 In this playbook project, `alai add` adds the collections the project needs,
 then updates the lock file and installs them:
 
-[Adding collections to a new project](casts/add.cast){ .alai-cast }
+[Adding collections to a new project](casts/add.cast){ .cli-cast }
 
 `alai.toml` now lists what the project needs and `alai.lock` has the exact
 versions chosen. The project's `collections/` directory also contains only
@@ -224,3 +224,7 @@ alai's speed comes from a few different things:
 - [Roadmap](roadmap.md): what's planned next.
 - [Acknowledgements](acknowledgements.md): the projects alai is inspired
   by and built on.
+- [alai-index](https://alai.sh/alai-index/): building and running your own
+  index, and the index format specification.
+- [alai-doc](https://alai.sh/alai-doc/): reading plugin and role
+  documentation from a collection in the terminal.

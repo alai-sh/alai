@@ -27,18 +27,19 @@ nav = [
   { "CLI reference" = "cli.md" },
   { "Roadmap" = "roadmap.md" },
   { "Acknowledgements" = "acknowledgements.md" },
+  { "alai-index docs" = "https://alai.sh/alai-index/" },
+  { "alai-doc docs" = "https://alai.sh/alai-doc/" },
 ]
 
-# The terminal recordings in the CLI reference: asciinema-player, vendored at a
-# pinned release, and cast.js, which turns each recording's link into a player.
+# The terminal recordings, copied in by python -m cli_recorder assets.
 extra_css = [
-  "assets/asciinema-player-3.17.0/asciinema-player.css",
-  "assets/cast.css",
-  "assets/ansi.css",
+  "assets/cli-recorder/asciinema-player/asciinema-player.css",
+  "assets/cli-recorder/cast.css",
+  "assets/cli-recorder/ansi.css",
 ]
 extra_javascript = [
-  "assets/asciinema-player-3.17.0/asciinema-player.min.js",
-  "assets/cast.js",
+  "assets/cli-recorder/asciinema-player/asciinema-player.min.js",
+  "assets/cli-recorder/cast.js",
 ]
 
 [project.theme]

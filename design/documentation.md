@@ -69,7 +69,7 @@
   `index.md`, which uses `site_description`, has a one-sentence
   `description` in its front matter, plain text under about 150
   characters, as it's also the search snippet. `cli.md`'s comes from
-  `HEADER` in `scripts/cli_reference.py`. A page without one falls back to
+  `header` in `[tool.cli-recorder]` in `pyproject.toml`. A page without one falls back to
   `site_description` silently.
 - **Deployed to GitHub Pages on every push to `main`** that could change the
   docs (`.github/workflows/docs.yml`), not tied to a release. This is fine
@@ -77,12 +77,18 @@
   follow `main`, follow releases, or are versioned. The workflow runs on a
   change to anything but what can't affect the docs (`design/`, editor and
   repo files), since the CLI reference and recordings come from `src/`,
-  `scripts/` and the index helpers in `tests/`; the rest of `tests/` isn't
+  `docs/` and the index helpers in `tests/`; the rest of `tests/` isn't
   excluded, as one more helper would be easy to miss. A list of what to
   include would miss whatever they come to use, and a check that doesn't run
   fails silently; one that runs needlessly costs half a minute.
 
 ## The CLI reference
+
+The reference, the recordings and the link check are made by
+[cli-recorder](https://github.com/alai-sh/cli-recorder), shared with
+alai-index and alai-doc, a `docs` dependency pinned to a commit in
+`uv.lock` (2026-11-05; they were scripts in `scripts/` before it was split
+out). alai's own part is `docs/recordings.py`, which serves the local index.
 
 `docs/cli.md` has a section per command: its description, recordings of it
 running, its usage, and a table of its arguments and options by argparse
@@ -92,8 +98,8 @@ group. The global options, which every command takes, are listed once.
   written from its clap definitions by `cargo dev generate-cli-reference`,
   committed, and CI fails with a diff when it's out of date (read in uv's
   `crates/uv-dev/src/generate_cli_reference.rs`, 2026-10-20).
-  `scripts/cli_reference.py` does the same from `_cli._build_parser()`:
-  `--check` in the `docs` tox env, and without it to rewrite the page. The
+  `python -m cli_recorder reference` does the same from
+  `_cli._build_parser()`: `--check` in the `docs` tox env, and without it to rewrite the page. The
   help text in the command modules is the one source; the page is never
   edited by hand. It's committed, unlike the recordings, so a help change
   shows up in review as a change to the page.
@@ -115,27 +121,27 @@ progress included, as [asciinema](https://asciinema.org/) v2 files played by
 asciinema-player. The idea comes from PwshSpectreConsole's docs, which run
 each example from the help and record it with Spectre.Console's recorder.
 
-- **Scenarios in `scripts/cli_recordings.toml`**, apart from where they're
+- **Scenarios in `docs/recordings.toml`**, apart from where they're
   shown: each `[[recording]]` has a name, a title, where it starts, files to
   start with, built collections' tarballs to start with (made with the
-  tests' `build_artifact`, as no `ansible-galaxy` is installed), hidden
+  tests' `build_artifact` by `docs/recordings.py`, as no `ansible-galaxy` is installed), hidden
   setup commands, and the commands typed. One
   `[[reference."<command>"]]` table per recording the CLI reference shows
   under a command, in order, names it and gives an optional description for
   that place. So one recording can be shown under several commands, each
   with its own words, or only on a guide page, linked as
-  `[Title](casts/<name>.cast){ .alai-cast }` with the guide's own text
+  `[Title](casts/<name>.cast){ .cli-cast }` with the guide's own text
   around it (2026-10-21; each recording named its one command and carried
   its description before). The title stays with the recording, as the
-  player shows it wherever it's used. `cli_reference.py` fails on a
+  player shows it wherever it's used. `reference` fails on a
   `[reference]` entry naming a command or recording that doesn't exist, and
   on a recording used nowhere, neither in `[reference]` nor linked from a
   page other than the generated one. A description's paragraphs follow the
-  recording's link, each marked `{: .alai-cast-description }`, and
+  recording's link, each marked `{: .cli-cast-description }`, and
   `cast.js` moves them between the title and the player; without
   JavaScript they read as paragraphs under the link. Paragraphs only, as
   `attr_list` can't mark a list.
-- **Recorded on every docs build**, by `scripts/cli_recordings.py` in the
+- **Recorded on every docs build**, by `python -m cli_recorder record` in the
   `docs` tox env, into `docs/casts/` (ignored by git), apart from a live
   one (below). A recording can't go stale, and there's nothing to refresh
   by hand. In VS Code, `docs: serve`
@@ -152,7 +158,7 @@ each example from the help and record it with Spectre.Console's recorder.
   `index.alai.sh` rather than the local index, as `ansible-galaxy` can't use
   ours and the point is how long each really takes. It takes a minute and
   the network, and Galaxy's speed varies widely, so it isn't made on every
-  build: `python scripts/cli_recordings.py galaxy-comparison` records it,
+  build: `python -m cli_recorder record galaxy-comparison` records it,
   only when named, into `docs/assets/casts/`, which git keeps. It plays at
   the speed it ran, with no pause cut short, so ansible-galaxy's wait shows
   in full, and holds 5 s on how it ends (`LIVE_HOLD`, 2026-10-26; it was the
@@ -242,19 +248,18 @@ each example from the help and record it with Spectre.Console's recorder.
   recording a whole shell session makes typing and setup harder to
   control) and vhs (needs ttyd and ffmpeg, and makes GIFs or videos, which
   can't be selected or themed).
-- **asciinema-player 3.17.0, vendored** in
-  `docs/assets/asciinema-player-3.17.0/` (the bundle's minified script, its
-  CSS and the Apache-2.0 licence, from the npm package), so the site loads
-  nothing from a CDN. Update it by replacing the directory and the two
-  paths in `zensical.toml`.
-- **`docs/assets/cast.js` turns each link into a player**, written in a
-  page as `[Title](casts/name.cast){ .alai-cast }`. Without JavaScript, the
+- **asciinema-player, vendored in cli-recorder** and copied into
+  `docs/assets/cli-recorder/` (ignored by git) by `python -m cli_recorder
+  assets` on each build, so the site loads nothing from a CDN. Updating it
+  is cli-recorder's job.
+- **`cast.js` turns each link into a player**, written in a
+  page as `[Title](casts/name.cast){ .cli-cast }`. Without JavaScript, the
   link to the file stays. A player starts once half of it is scrolled into
   view, and plays once, as PwshSpectreConsole's do; with reduced motion
   asked for, it doesn't start, and shows how the recording ends. The
   terminal uses the page's code font and colours, with ANSI colours from
-  GitHub's light and dark terminal palettes (`docs/assets/cast.css`), which
-  switch with the page's scheme. `check_doc_links.py` checks a recording's
+  GitHub's light and dark terminal palettes (`cast.css`), which
+  switch with the page's scheme. `check-links` checks a recording's
   link points at a file that exists.
 
 ## Not done yet
