@@ -34,6 +34,7 @@ from ._output import (
     YELLOW,
     Renderer,
     debug,
+    error,
     status,
     warn,
 )
@@ -134,17 +135,19 @@ def find(
             and not (f.route and _routing_only(f.plugin) and (f.plugin.type, as_builtin(f.route.final)) in keys)
         )
     ]
+    if installed_only:
+        found = [f for f in found if f.installed]
     if not found:
         suggestions = catalog.suggest(query)
         also = f"; did you mean {_or(suggestions)}?" if suggestions else ""
-        warn(
+        error(
             f"no plugin matches '{query.typed}'{'' if not query.types else ' of type ' + _or(sorted(query.types))}{also}"
         )
         return EXIT_NOT_FOUND
 
     mine = [f for f in found if f.installed]
-    others = [] if installed_only else [f for f in found if not f.installed]
-    cached = cached_collections(settings.cache_dir) if len(others) > 1 else set[str]()
+    others = [f for f in found if not f.installed]
+    cached = cached_collections(settings.cache_dir) if len(others) > 1 or query.fqcn else set[str]()
     mine.sort(key=lambda f: rank(f, cached))
     others.sort(key=lambda f: rank(f, cached))
     # Only a person at a terminal is served by a short list: a pipe or file, a pager or grep or a script, gets them all.
@@ -161,7 +164,7 @@ def find(
         _print_json(mine + others, hidden, installed or {}, installed_sources(settings, installed or {}))
     elif query.fqcn:
         for item in mine + others:
-            alternatives = same_name(item, catalog, versions, settings.cache_dir)
+            alternatives = same_name(item, catalog, versions, cached)
             _Renderer(settings, query, installed).detail(item, alternatives)
     else:
         _Renderer(settings, query, installed).listing(mine, others, totals, project=installed is not None)
@@ -169,7 +172,7 @@ def find(
 
 
 def same_name(
-    item: Found, catalog: Catalog, versions: dict[str, Version | None], cache_dir: str, *, most: int = 3
+    item: Found, catalog: Catalog, versions: dict[str, Version | None], cached: set[str], *, most: int = 3
 ) -> list[Found]:
     """For a plugin that's removed, or whose route breaks at one, with no ``warning_text`` saying what to use instead:
     the best-ranked other usable plugins of its type and name, as a guess at what replaced it. Most plugins that left
@@ -190,7 +193,6 @@ def same_name(
     # Another name for one already listed adds nothing.
     names = {f.plugin.fqcn for f in found}
     found = [f for f in found if f.route is None or as_builtin(f.route.final) not in names]
-    cached = cached_collections(cache_dir) if len(found) > 1 else set[str]()
     return sorted(found, key=lambda f: (not f.usable, rank(f, cached)))[:most]
 
 

@@ -16,9 +16,9 @@ import typing as _t
 
 from alai_core.semver import Version
 
-from ._common import EXIT_ERROR, EXIT_NOT_FOUND, Error, Record
+from ._common import EXIT_ERROR, EXIT_NOT_FOUND, Error, Record, manifest_info
 from ._config import Settings
-from ._output import debug, error, warn
+from ._output import debug, error
 from ._plugins import BUILTINS
 
 if _t.TYPE_CHECKING:
@@ -79,7 +79,7 @@ def collection_path(settings: Settings, names: list[str], *, download: bool = Tr
             if isinstance(item, str):
                 error(f"can't find {name}'s files because {item}")
             elif item is None:
-                warn(f"no index has {name}" if download else f"{name} isn't on disk")
+                error(f"no index has {name}" if download else f"{name} isn't on disk")
             else:
                 print(item.path)
     if any(isinstance(i, str) for i in found.values()):
@@ -129,17 +129,32 @@ def locate(
 
 
 def _locked(settings: Settings, name: str, *, download: bool) -> Located | None:
-    """The locked version from the cache, downloading it if it isn't there, when it comes from an index or a
-    tarball."""
+    """The locked version: a directory source's directory; a git source's commit from the cache, fetched if it isn't
+    there; and an index's or a tarball's collection from the cache, downloaded if it isn't there."""
     from ._artifacts import ArtifactCache
-    from ._lock import lock_path, read_lock
-    from ._sync import _fetch
+    from ._git import cached as git_cached
+    from ._lock import DirectorySource, EditableSource, GitCommitSource, lock_path, read_lock
+    from ._project import source_dir
+    from ._sync import _fetch, _fetch_commits
 
     if settings.project.config_file is None:
         return None
     lock = read_lock(lock_path(settings.project.root))
     entry = lock.get(name) if lock is not None else None
-    if entry is None or entry.cksum is None or entry.size is None or entry.is_git():
+    if entry is None:
+        return None
+    source = entry.source
+    if isinstance(source, (DirectorySource, EditableSource)):
+        return Located(name, str(entry.version), source_dir(settings, source.path), LOCKED)
+    if isinstance(source, GitCommitSource):
+        checkout = git_cached(settings.cache_dir, source.url, source.commit)
+        if checkout is None and not download:
+            return None
+        if checkout is not None and source.subdirectory is not None:
+            checkout = os.path.join(checkout, *source.subdirectory.split("/"))
+        path = checkout or _fetch_commits([entry], settings).paths[name]
+        return Located(name, str(entry.version), path, LOCKED if checkout else DOWNLOADED)
+    if entry.cksum is None or entry.size is None:
         return None
     cached = ArtifactCache(settings.cache_dir).cached(entry.cksum)
     if cached is None and not download:
@@ -154,16 +169,11 @@ def _cached(cache_dir: str, name: str) -> Located | None:
 
     best: tuple[Version, str] | None = None
     for manifest in glob.glob(os.path.join(glob.escape(cache_dir), LAYOUT, "*", "MANIFEST.json")):
-        try:
-            with open(manifest, "rb") as f:
-                info = json.load(f)["collection_info"]
-            if f"{info['namespace']}.{info['name']}" != name:
-                continue
-            version = Version(info["version"])
-        except (OSError, ValueError, KeyError, TypeError):
+        info = manifest_info(manifest)
+        if info is None or info[0] != name:
             continue
-        if best is None or version > best[0]:
-            best = (version, os.path.dirname(manifest))
+        if best is None or info[1] > best[0]:
+            best = (info[1], os.path.dirname(manifest))
     return Located(name, str(best[0]), best[1], CACHED) if best is not None else None
 
 

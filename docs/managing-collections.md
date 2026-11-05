@@ -124,7 +124,7 @@ anything:
 $ alai lock --upgrade --check
 Resolved 4 collections in 174ms
 Updated ansible.posix v2.1.0 -> v2.2.2
-error: alai.lock is out of date; run alai lock
+error: alai.lock is out of date; run alai lock --upgrade
 ```
 
 Then upgrade and install:

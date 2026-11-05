@@ -6,7 +6,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from helpers import edit, edited, installed_versions, lines, write_project
+from helpers import edit, edited, installed_at, installed_versions, lines, write_project
 from index_data import make_index, v
 
 from alai._cli import main
@@ -148,6 +148,13 @@ class TestSync:
 
         assert (tmp_path / "elsewhere" / "ansible_collections" / "c" / "c" / "MANIFEST.json").is_file()
 
+    def test_link_mode(self, project: Path) -> None:
+        write_project(project, ["c.c"])
+
+        assert sync("--link-mode", "symlink") == 0
+
+        assert (installed_at(project / "collections", "c.c") / "README.md").is_symlink()
+
     def test_quiet(self, project: Path, capsys: pytest.CaptureFixture[str]) -> None:
         write_project(project, ["c.c"])
 
@@ -180,6 +187,15 @@ class TestGroups:
         assert sync(*args) == 0
 
         assert set(installed_versions(project / "collections")) == expected
+
+    def test_frozen_group_not_in_lock(self, project: Path, capsys: pytest.CaptureFixture[str]) -> None:
+        write_project(project, ["a.a"])
+        _ = sync()
+        write_project(project, ["a.a"], groups={"new": ["c.c"]})
+
+        assert sync("--frozen", "--group", "new") == EXIT_ERROR
+
+        assert "the lock has no group 'new', which alai.toml has: run alai lock" in capsys.readouterr().err
 
     def test_without_a_dev_group(self, project: Path) -> None:
         # --no-dev and --no-group dev are fine with no dev group, so a CI job can always pass them.

@@ -356,7 +356,18 @@ def test_complete_suggestions(tmp_path: Path) -> None:
     assert sorted(complete(tmp_path, "alai find --type c")) == ["cache", "callback", "cliconf", "connection"]
 
 
-def test_suggestions_not_enforced(tmp_path: Path) -> None:
+def test_broken_pipe(isolated: Path) -> None:
+    # config show writes to a pipe nobody reads from, as alai ... | head does once head has what it wants.
+    read_end, write_end = os.pipe()
+    os.close(read_end)
+    with os.fdopen(write_end, "wb") as stdout:
+        ran = subprocess.run([sys.executable, "-m", "alai", "config", "show"], stdout=stdout, stderr=subprocess.PIPE)
+
+    assert ran.returncode == 0
+    assert ran.stderr == b""
+
+
+def test_suggestions_not_enforced() -> None:
     from alai._cli import _build_parser
 
     args = _build_parser().parse_args(["find", "-t", "a_type_from_the_future", "x"])

@@ -3,13 +3,16 @@
 
 from __future__ import annotations
 
+import collections.abc as _c
 import os
+import socket
 from pathlib import Path
 
 import pytest
 from index_data import make_index, v
 
 from alai import _output
+from alai._fetch import Fetcher
 
 
 @pytest.fixture(autouse=True)
@@ -34,6 +37,21 @@ COLLECTIONS: dict[str, list[dict[str, object]]] = {
     "c.c": [v("1.0.0")],
     "d.d": [v("1.0.0")],
 }
+
+
+@pytest.fixture
+def fetcher() -> _c.Iterator[Fetcher]:
+    with Fetcher(user_agent="alai-test/1") as f:
+        yield f
+
+
+@pytest.fixture
+def refused_port() -> _c.Iterator[int]:
+    """A port on 127.0.0.1 that refuses connections for the whole test. The socket stays bound without listening, so
+    another worker's server can't take the port in between, as it could were the socket closed first."""
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        yield s.getsockname()[1]
 
 
 @pytest.fixture

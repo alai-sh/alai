@@ -156,7 +156,7 @@ class TestLock:
 
         assert capsys.readouterr() == ("", "")
 
-    def test_offline_uses_the_cache(self, project: Path, tmp_path: Path) -> None:
+    def test_offline_uses_the_cache(self, project: Path) -> None:
         # A file:// index isn't cached, so offline needs an http one; without a cached copy it fails.
         write_project(project, ["a.a"])
 

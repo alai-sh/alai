@@ -75,7 +75,7 @@ def _map_module_sources(value: str, links: _c.Sequence[tuple[str, str]]) -> str 
     matches the editor's breakpoints, set in the checkout, against that by prefix, so they never hit. The
     configuration's ``source_mapping``, from paths the editor knows to paths Ansible knows, translates it.
     ansible-test fills it only with paths it maps to themselves. Best effort, as the setting is ansible-core's
-    internal one. Remove it, with its tests and the note in ``docs/editors.md``, once ansible-test's
+    internal one. Remove it, with its tests, once ansible-test's
     ``DebuggableProfile.get_source_mapping`` maps a content root reached through a link to its real path, or
     ansible-core keys the AnsiballZ source mapping by real path.
     """

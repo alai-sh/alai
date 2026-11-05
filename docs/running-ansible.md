@@ -120,6 +120,11 @@ In a [collection project](projects.md#collection-project),
 | `ANSIBLE_TEST_CONTENT_ROOT` | `<collections_dir>/ansible_collections/<namespace>/<name>`, the collection's link | ansible-test needs the collection at a path ending in `ansible_collections/<namespace>/<name>`, which the link gives it wherever the checkout is |
 | `PYDEVD_RESOLVE_SYMLINKS` | `1` | The collection is loaded through its link, so debuggers built on debugpy, such as VS Code's, show its files in the checkout rather than through the collection cache |
 
+A playbook project with an
+[editable directory](collection-sources.md#an-editable-directory) source
+loads that collection through a link too, so `PYDEVD_RESOLVE_SYMLINKS` is set
+there as well.
+
 Tools like `ansible-test` can then run from a checkout anywhere, rather than
 only in the expected `ansible_collections/<namespace>/<name>` directory:
 

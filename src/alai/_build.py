@@ -53,9 +53,7 @@ _MAX_VALUES = 100_000
 """How many values ``galaxy.yml``'s keys may hold, far more than a real one has, so a few aliases can't make
 ``MANIFEST.json`` enormous."""
 _IGNORED_DIRS = frozenset(("CVS", ".bzr", ".hg", ".git", ".svn", "__pycache__", ".tox"))
-"""The plugin directories, other than ``modules`` and ``module_utils``, whose YAML files ansible-galaxy's default
-directives include: its plugin loaders' packages that are in ``DOCUMENTABLE_PLUGINS``, worked out from ansible-core
-``616e7c05e0``."""
+"""The version control and cache directories ansible-galaxy's build leaves out, its ``b_ignore_dirs``."""
 
 
 class BuildError(Error):
@@ -201,11 +199,22 @@ def _copy(source: str, dest: str, entries: _c.Iterable[tuple[str, str, str | Non
             if ftype == "dir":
                 raise BuildError(f"{src} is a symlink to a directory outside the collection, {target}")
         # A file, or what a link leading outside points at, with its mode as the build gives it.
-        shutil.copyfile(src, dst)
-        if sha256 is not None and _sha256(dst) != sha256:
+        if sha256 is None:
+            shutil.copyfile(src, dst)
+        elif _copy_hashed(src, dst) != sha256:
             raise BuildError(f"{src} doesn't match its checksum in the collection's files manifest")
         executable = os.stat(src).st_mode & stat.S_IXUSR
         os.chmod(dst, (0o755 if executable else 0o644) & ~umask)
+
+
+def _copy_hashed(src: str, dst: str) -> str:
+    """Copy ``src`` to the new file ``dst``, and return the sha256 of what was written, read once for both."""
+    digest = hashlib.sha256()
+    with open(src, "rb") as f, open(dst, "xb") as out:
+        while chunk := f.read(1024 * 1024):
+            digest.update(chunk)
+            out.write(chunk)
+    return digest.hexdigest()
 
 
 def _read(path: str) -> bytes:

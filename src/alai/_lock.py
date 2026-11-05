@@ -266,7 +266,7 @@ class LockedRoot(Record):
 
 
 class Lock(Record):
-    __slots__ = ("_by_name", "collections", "manifest", "root")
+    __slots__ = ("_by_name", "_parsed", "collections", "manifest", "root")
 
     def __init__(
         self, manifest: RawManifest, collections: _c.Iterable[LockedCollection], root: LockedRoot | None = None
@@ -279,6 +279,22 @@ class Lock(Record):
         ``[sources]``)."""
         self.collections = tuple(sorted(collections, key=lambda c: c.name))
         self._by_name = {c.name: c for c in self.collections}
+        self._parsed: Manifest | None = None
+
+    def __eq__(self, other: object) -> bool:
+        # Without what's derived from the three, so a parsed lock equals an unparsed one.
+        return type(other) is type(self) and (self.manifest, self.collections, self.root) == (
+            other.manifest,
+            other.collections,
+            other.root,
+        )
+
+    @property
+    def parsed(self) -> Manifest:
+        """``manifest`` as parsed, once, for everything that compares or selects by it."""
+        if self._parsed is None:
+            self._parsed = parse_manifest(self.manifest)
+        return self._parsed
 
     def get(self, name: str) -> LockedCollection | None:
         return self._by_name.get(name)
@@ -286,9 +302,11 @@ class Lock(Record):
     def select(self, groups: _c.Iterable[str], *, project: bool = True) -> list[LockedCollection]:
         """What installing the project's requirements, unless not ``project``, and those of ``groups`` needs: each
         collection they name and everything those depend on, sorted by name."""
-        manifest = parse_manifest(self.manifest)
+        manifest = self.parsed
         wanted = [r.name for r in manifest.collections] if project else []
         for group in groups:
+            if group not in manifest.groups:
+                raise LockError(f"the lock has no group '{group}', which alai.toml has: run alai lock")
             wanted.extend(r.name for r in manifest.groups[group])
         found: set[str] = set()
         while wanted:
@@ -308,7 +326,7 @@ class Lock(Record):
 
         Compared as parsed, so a change in whitespace or order in ``alai.toml`` doesn't make it stale.
         """
-        return parse_manifest(self.manifest).resolution_key() == manifest.resolution_key()
+        return self.parsed.resolution_key() == manifest.resolution_key()
 
 
 def stale(lock: Lock | None, manifest: Manifest, index_urls: _c.Collection[str]) -> str | None:
@@ -404,7 +422,7 @@ def input_changes(lock: Lock, manifest: Manifest) -> list[str]:
     """What ``manifest`` asks for that differs from the inputs ``lock`` was resolved from, one line per difference,
     named by its place in ``alai.toml``; nothing when ``lock.is_current(manifest)``. Compared as parsed, as
     ``is_current`` compares them, and shown as written."""
-    before = parse_manifest(lock.manifest)
+    before = lock.parsed
     lines: list[str] = []
 
     def compare(key: str, old: _c.Mapping[str, tuple[object, str]], new: _c.Mapping[str, tuple[object, str]]) -> None:

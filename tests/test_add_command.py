@@ -43,6 +43,24 @@ class TestAdd:
         assert 'name = "a.a"' in (project / "alai.lock").read_text()
         assert lines(capsys.readouterr().err)[0] == "Resolved 3 collections"
 
+    def test_adds_a_locked_dependency(self, project: Path) -> None:
+        write(project, '[project]\ncollections = [\n    "a.a",\n]\n')
+        assert main(["sync", "-q"]) == 0
+
+        assert main(["add", "-q", "b.b"]) == 0
+
+        assert toml(project) == '[project]\ncollections = [\n    "a.a",\n    "b.b>=1.1.0",\n]\n'
+        assert installed_versions(project / "collections") == {"a.a": "2.0.0", "b.b": "1.1.0"}
+
+    def test_keeps_a_source_entry(self, project: Path) -> None:
+        write(project, '[project]\ncollections = []\n\n[project.sources]\n"c.c" = { index = "alai" }\n')
+
+        assert main(["add", "-q", "c.c"]) == 0
+
+        assert toml(project) == (
+            '[project]\ncollections = [\n    "c.c>=1.0.0",\n]\n\n[project.sources]\n"c.c" = { index = "alai" }\n'
+        )
+
     def test_requirement_written_as_given(self, project: Path) -> None:
         write(project)
 

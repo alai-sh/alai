@@ -3,8 +3,12 @@
 A fast package and environment manager for Ansible collections, heavily
 inspired by [uv](https://docs.astral.sh/uv/).
 
-> **Preview:** alai's interface isn't stable yet. Expect breaking changes as
-> workflows are worked out and adjusted.
+> **Preview:** alai is released in preview, as a 0.x version under
+> [semantic versioning](https://semver.org/). Its interface can still change
+> as workflows are worked out, so a release that breaks something bumps the
+> minor version, from 0.1 to 0.2, and lists the change in the
+> [changelog](https://github.com/alai-sh/alai/blob/main/CHANGELOG.md). A
+> patch release, such as 0.1.1, only fixes bugs.
 
 > **A word on how alai is made:** alai is written with the help of AI coding
 > tools. That doesn't mean a model was handed a prompt and left to get on with
@@ -65,19 +69,22 @@ can't run on Windows.
 
 ## Installing
 
-Install alai with [uv](https://docs.astral.sh/uv/getting-started/installation/),
-from the latest source on GitHub:
+alai is published on PyPI as `alai-sh`. Install it as a tool with
+[uv](https://docs.astral.sh/uv/getting-started/installation/), which puts
+the `alai` command on your `PATH`:
 
 ```console
-$ uv tool install https://github.com/alai-sh/alai/archive/refs/heads/main.tar.gz
+$ uv tool install alai-sh
 ```
 
-To update, run the same command with `--reinstall`, as `uv tool upgrade`
-doesn't look for new commits. Part of alai is written in Rust, so installing
-from source needs Rust 1.92 or later with `cargo` on your `PATH`
-([rustup](https://rustup.rs/) installs it). Building from source is only
-needed until alai is published on PyPI, when `uv tool install alai-sh` will
-install a ready-built wheel on most Linux and macOS systems.
+To update, run `uv tool upgrade alai-sh`. To try alai without installing it,
+`uvx --from alai-sh alai` runs it in a temporary environment, such as
+`uvx --from alai-sh alai --version`.
+
+The wheels on PyPI cover Linux on x86_64 and aarch64, with glibc or musl,
+and macOS on Apple silicon. On any other platform, such as an Intel Mac, uv
+builds alai from the source distribution, which needs Rust 1.92 or later
+with `cargo` on your `PATH` ([rustup](https://rustup.rs/) installs it).
 
 ## Getting started
 

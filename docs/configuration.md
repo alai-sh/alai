@@ -129,8 +129,8 @@ command-line flag. Flags and environment variables take precedence over every
 file. The [`alai.toml` reference](alai-toml.md) lists each setting's flag and
 environment variable, and a flag is only accepted by the commands that use
 it. Only the project's `alai.toml` can set
-`project.collections_dir`, but its flag and environment variable work for
-any run.
+`project.collections_dir`, but its environment variable works for any run
+and its flag for any command that installs.
 
 ### Environment variables
 

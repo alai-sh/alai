@@ -8,7 +8,7 @@ resolver = "3"
 [workspace.package]
 # alai's version, for the Python package as well as the crate: pyproject.toml takes it from here (dynamic = ["version"]),
 # through maturin. A pre-release is written as SemVer (0.1.0-alpha.1), which maturin turns into PEP 440 (0.1.0a1).
-version = "0.0.1"
+version = "0.1.0"
 edition = "2024"
 # The highest of the dependencies': pubgrub 0.4 needs 1.92, sha2 0.11.1 1.88, pyo3 0.30 1.85.
 # (RustCrypto/hashes#920).

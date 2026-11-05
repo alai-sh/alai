@@ -1,8 +1,7 @@
 # Copyright: (c) 2026, Jordan Borean (@jborean93) <jborean93@gmail.com>
 # MIT License (see LICENSE or https://opensource.org/licenses/MIT)
 
-# alai's native code, built from src/rust/ by maturin. Each releases the GIL while it works, but for the TOML
-# functions, which build Python objects as they go.
+# alai's native code, built from src/rust/ by maturin.
 
 import os
 

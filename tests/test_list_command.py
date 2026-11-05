@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 import pytest
-from helpers import Repo, collection_source
+from helpers import Repo, collection_source, write_sources
 
 from alai import _output
 from alai._cli import main
@@ -171,10 +171,7 @@ class TestCompared:
 class TestSources:
     def test_directory(self, project: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         _ = collection_source(tmp_path / "src")
-        write(
-            project,
-            f'[project]\ncollections = ["ns.src"]\n\n[project.sources]\n"ns.src" = {{ path = "{tmp_path / "src"}" }}\n',
-        )
+        write_sources(project, f'"ns.src" = {{ path = "{tmp_path / "src"}" }}')
         sync()
 
         out, _ = listing(capsys)
@@ -183,10 +180,7 @@ class TestSources:
 
     def test_directory_changed_since(self, project: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         _ = collection_source(tmp_path / "src")
-        write(
-            project,
-            f'[project]\ncollections = ["ns.src"]\n\n[project.sources]\n"ns.src" = {{ path = "{tmp_path / "src"}" }}\n',
-        )
+        write_sources(project, f'"ns.src" = {{ path = "{tmp_path / "src"}" }}')
         sync()
         _ = collection_source(tmp_path / "src", extra="description: changed\n")
 
@@ -197,10 +191,7 @@ class TestSources:
     def test_other_directory(self, project: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         _ = collection_source(tmp_path / "src")
         _ = collection_source(tmp_path / "other")
-        write(
-            project,
-            f'[project]\ncollections = ["ns.src"]\n\n[project.sources]\n"ns.src" = {{ path = "{tmp_path / "src"}" }}\n',
-        )
+        write_sources(project, f'"ns.src" = {{ path = "{tmp_path / "src"}" }}')
         sync()
         assert main(["collection", "install", str(tmp_path / "other")]) == 0
 
@@ -212,10 +203,7 @@ class TestSources:
         self, project: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
     ) -> None:
         _ = collection_source(tmp_path / "src", name="c.c", version="2.0.0")
-        write(
-            project,
-            f'[project]\ncollections = ["c.c"]\n\n[project.sources]\n"c.c" = {{ path = "{tmp_path / "src"}" }}\n',
-        )
+        write_sources(project, f'"c.c" = {{ path = "{tmp_path / "src"}" }}', collections='"c.c"')
         sync()
         assert main(["collection", "install", "c.c==1.0.0"]) == 0
 
@@ -237,10 +225,7 @@ class TestSources:
 
     def test_editable(self, project: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         _ = collection_source(tmp_path / "src")
-        write(
-            project,
-            f'[project]\ncollections = ["ns.src"]\n\n[project.sources]\n"ns.src" = {{ path = "{tmp_path / "src"}", editable = true }}\n',
-        )
+        write_sources(project, f'"ns.src" = {{ path = "{tmp_path / "src"}", editable = true }}')
         sync()
 
         out, _ = listing(capsys)
@@ -251,10 +236,7 @@ class TestSources:
         self, project: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
     ) -> None:
         _ = collection_source(tmp_path / "src")
-        write(
-            project,
-            f'[project]\ncollections = ["ns.src"]\n\n[project.sources]\n"ns.src" = {{ path = "{tmp_path / "src"}", editable = true }}\n',
-        )
+        write_sources(project, f'"ns.src" = {{ path = "{tmp_path / "src"}", editable = true }}')
         sync()
         _ = collection_source(tmp_path / "src", version="1.1.0")
 
@@ -264,10 +246,7 @@ class TestSources:
 
     def test_copy_in_place_of_editable(self, project: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         _ = collection_source(tmp_path / "src")
-        write(
-            project,
-            f'[project]\ncollections = ["ns.src"]\n\n[project.sources]\n"ns.src" = {{ path = "{tmp_path / "src"}", editable = true }}\n',
-        )
+        write_sources(project, f'"ns.src" = {{ path = "{tmp_path / "src"}", editable = true }}')
         sync()
         assert main(["collection", "install", str(tmp_path / "src")]) == 0
 
@@ -276,13 +255,10 @@ class TestSources:
         expected = f" ≠ ns.src  1.0.0  alai.lock has it from {tmp_path / 'src'}, editable; {tmp_path / 'src'}"
         assert out == [expected]
 
-    def test_shortens_home(self, project: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    def test_shortens_home(self, project: Path, capsys: pytest.CaptureFixture[str]) -> None:
         home = Path(os.environ["HOME"])
         _ = collection_source(home / "src")
-        write(
-            project,
-            f'[project]\ncollections = ["ns.src"]\n\n[project.sources]\n"ns.src" = {{ path = "{home / "src"}" }}\n',
-        )
+        write_sources(project, f'"ns.src" = {{ path = "{home / "src"}" }}')
         sync()
 
         out, _ = listing(capsys)
@@ -293,9 +269,7 @@ class TestSources:
         repo = Repo(tmp_path / "repo")
         repo.collection()
         first = repo.commit()
-        write(
-            project, f'[project]\ncollections = ["ns.src"]\n\n[project.sources]\n"ns.src" = {{ git = "{repo.url}" }}\n'
-        )
+        write_sources(project, f'"ns.src" = {{ git = "{repo.url}" }}')
         sync()
         repo.collection(readme="changed\n")
         second = repo.commit()
@@ -318,9 +292,8 @@ class TestSources:
 class TestJson:
     def test_compared(self, project: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         _ = collection_source(tmp_path / "src")
-        write(
-            project,
-            f'[project]\ncollections = ["a.a", "ns.src"]\n\n[project.sources]\n"ns.src" = {{ path = "{tmp_path / "src"}", editable = true }}\n',
+        write_sources(
+            project, f'"ns.src" = {{ path = "{tmp_path / "src"}", editable = true }}', collections='"a.a", "ns.src"'
         )
         sync()
         assert main(["collection", "uninstall", "b.b"]) == 0

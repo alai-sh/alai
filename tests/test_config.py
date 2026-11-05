@@ -277,6 +277,15 @@ class TestConfigFiles:
         ):
             load(tmp_path, environ, Overrides(config_file=name))
 
+    def test_config_file_env(self, tmp_path: Path, environ: dict[str, str]) -> None:
+        write_file(tmp_path / "alai.toml", 'link_mode = "copy"\n')
+        explicit = write_file(tmp_path / "ci.toml", 'link_mode = "hardlink"\n')
+
+        settings = load(tmp_path, {**environ, "ALAI_CONFIG_FILE": "ci.toml"})
+
+        assert settings.config_files == (str(explicit),)
+        assert settings.link_mode == LinkMode.HARDLINK
+
     def test_config_file_missing(self, tmp_path: Path, environ: dict[str, str]) -> None:
         with pytest.raises(ConfigError, match=r"missing\.toml"):
             load(tmp_path, environ, Overrides(config_file="missing.toml"))

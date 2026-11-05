@@ -129,7 +129,9 @@ class Fetcher:
         if self.offline or url.startswith("file:"):
             return self.get(url, cache_path, what=what)
         unique = f"{url}{'&' if '?' in url else '?'}r={secrets.token_hex(8)}"
-        return self._executor.submit(self._get, url, cache_path, unique, what=what).result()
+        with self._lock:
+            future = self._fetches[url] = self._executor.submit(self._get, url, cache_path, unique, what=what)
+        return future.result()
 
     def download(self, url: str, path: str, *, max_size: int) -> tuple[str, int]:
         """Download ``url`` to the new file ``path``, waiting for it, and return the SHA-256 and size of what was

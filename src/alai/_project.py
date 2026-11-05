@@ -94,8 +94,8 @@ def with_root(
 ) -> tuple[RawManifest, Manifest]:
     """``raw``, the project's ``alai.toml``, as resolved: as it is, or in a collection project, with
     the requirements and ``requires_ansible`` its ``galaxy.yml`` and ``meta/runtime.yml`` give, which ``alai.toml``
-    mustn't repeat. ``local`` is another manifest's ``local``, read from
-    the same sources moments ago, to use rather than read them again."""
+    mustn't repeat. ``local`` are collections read from the same sources moments ago, to use rather than read them
+    again."""
     galaxy_file = settings.project.collection_file
     if galaxy_file is None:
         manifest = parse_manifest(raw)
@@ -136,10 +136,10 @@ def with_root(
 
 
 def _fill_local(settings: Settings, manifest: Manifest, local: _c.Mapping[str, SourceCollection] | None) -> None:
-    if local is None:
-        read_local(settings, manifest)
-    else:
-        manifest.local.update(local)
+    """Fill ``manifest.local``: with ``local``, collections read from the same sources moments ago, then from the path
+    sources that leaves."""
+    manifest.local.update(local or {})
+    read_local(settings, manifest)
 
 
 def source_dir(settings: Settings, path: str) -> str:
@@ -155,7 +155,7 @@ def read_local(settings: Settings, manifest: Manifest) -> None:
     or an exact sync, would replace or remove it. A path to a tarball is hashed and read through the cache; a URL or
     a git repository needs the network, so ``resolve_manifest`` reads those."""
     for name, source in sorted(manifest.sources.items()):
-        if isinstance(source, PathSource):
+        if isinstance(source, PathSource) and name not in manifest.local:
             manifest.local[name] = read_path_source(settings, name, source)
 
 
@@ -319,7 +319,7 @@ def read_git_sources(
     """
     from ._git import update_all
 
-    before = parse_manifest(locked.manifest).sources if locked is not None else {}
+    before = locked.parsed.sources if locked is not None else {}
     wanted: dict[str, tuple[GitSource, str | None]] = {}
     for name, source in sorted(manifest.sources.items()):
         if not isinstance(source, GitSource) or name in manifest.local:

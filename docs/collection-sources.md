@@ -236,8 +236,8 @@ out `editable` to use a [copied directory](#a-directory) instead.
 ## A tarball
 
 A tarball source is a file path or HTTP URL to a built collection's
-tarball. alai extracts the tarball into the collections directory as it
-does a collection from an index.
+tarball. alai extracts the tarball into its cache and installs it from
+there, as it does a collection from an index.
 
 To add a tarball as a source, run:
 
