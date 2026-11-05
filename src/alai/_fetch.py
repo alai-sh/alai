@@ -131,30 +131,25 @@ class Fetcher:
         unique = f"{url}{'&' if '?' in url else '?'}r={secrets.token_hex(8)}"
         return self._executor.submit(self._get, url, cache_path, unique, what=what).result()
 
-    def download(
-        self, url: str, path: str, *, max_size: int, magic: bytes = b"", kind: str = "file"
-    ) -> tuple[str, int]:
+    def download(self, url: str, path: str, *, max_size: int) -> tuple[str, int]:
         """Download ``url`` to the new file ``path``, waiting for it, and return the SHA-256 and size of what was
         written.
 
         For artifacts: streamed rather than held in memory, and never cached here, since the caller keeps what it
-        extracts. It stops once more than ``max_size`` bytes arrive, so a wrong or hostile response can't fill the disk,
-        and as soon as it's clear the file doesn't start with ``magic``, the bytes every ``kind`` of file starts with,
-        so a response that's something else, such as an error page, isn't downloaded whole. Not found and offline are
+        extracts. It stops once more than ``max_size`` bytes arrive, so a wrong or hostile response can't fill the disk.
+        What the file is, such as how it's compressed, is for alai-core's extractor to find. Not found and offline are
         FetchErrors, as the caller only asks for what a lock or a source names.
         """
         if url.startswith("file:"):
-            return self._copy(url, path, max_size=max_size, magic=magic, kind=kind)
+            return self._copy(url, path, max_size=max_size)
         if self.offline:
             raise FetchError(f"{url} isn't in the cache, and alai is offline")
         try:
-            status, reason, redirects, sha256, size = self._http(url).download(url, path, max_size, magic)
+            status, reason, redirects, sha256, size = self._http(url).download(url, path, max_size)
         except _native.HttpError as e:
             error_kind, _ = e.args
             if error_kind == "too_large":
                 raise FetchError(f"{url}: larger than the {max_size} bytes expected") from e
-            if error_kind == "not_magic":
-                raise FetchError(f"{url}: not a {kind}") from e
             raise _transport_error(url, e, self._http(url).proxy(url)) from e
         except OSError as e:
             raise FetchError(f"can't write {path}: {e.strerror or e}") from e
@@ -166,27 +161,20 @@ class Fetcher:
         trace(f"GET {url}: {size} bytes")
         return sha256, size
 
-    def _copy(self, url: str, path: str, *, max_size: int, magic: bytes, kind: str) -> tuple[str, int]:
+    def _copy(self, url: str, path: str, *, max_size: int) -> tuple[str, int]:
         """``download`` for a file URL."""
         digest = hashlib.sha256()
         size = 0
-        start = b""
         try:
             with open(path, "xb") as out:
                 for chunk in self._chunks(url):
                     size += len(chunk)
                     if size > max_size:
                         raise FetchError(f"{url}: larger than the {max_size} bytes expected")
-                    if len(start) < len(magic):
-                        start += chunk[: len(magic) - len(start)]
-                        if not magic.startswith(start):
-                            raise FetchError(f"{url}: not a {kind}")
                     digest.update(chunk)
                     out.write(chunk)
         except OSError as e:
             raise FetchError(f"can't write {path}: {e.strerror or e}") from e
-        if len(start) < len(magic):
-            raise FetchError(f"{url}: not a {kind}")
         trace(f"read {url}: {size} bytes")
         return digest.hexdigest(), size
 

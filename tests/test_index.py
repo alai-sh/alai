@@ -145,19 +145,19 @@ class TestConfig:
             ),
             (
                 config(formats={"1": {"index": "index/{sha256-prefix}/{sha256-checksum}.jsonl"}}),
-                r"'formats\.1\.index' finds files by SHA-256, which only a 'collections' listing gives",
+                r"'formats\.1\.index' finds files by their SHA-256 checksum, so the format needs a 'collections' listing",
             ),
             (
                 config(formats={"1": {"index": "index/", "collections": "c.json"}}),
-                r"'formats\.1\.index' must be a URL template naming each file",
+                r"'formats\.1\.index' must be a URL template that names each file",
             ),
             (
                 config(formats={"1": {"index": "index/{name}.jsonl", "collections": "c.json"}}),
-                r"'formats\.1\.index' must be a URL template naming each file",
+                r"'formats\.1\.index' must be a URL template that names each file",
             ),
             (
                 config(formats={"1": {"index": "index/{sha256-prefix}.jsonl", "collections": "c.json"}}),
-                r"'formats\.1\.index' must be a URL template naming each file",
+                r"'formats\.1\.index' must be a URL template that names each file",
             ),
             (
                 config(formats={"1": {"index": "http://files.example/{namespace}/{name}.jsonl", "collections": "c"}}),

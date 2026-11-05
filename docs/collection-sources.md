@@ -236,7 +236,7 @@ out `editable` to use a [copied directory](#a-directory) instead.
 ## A tarball
 
 A tarball source is a file path or HTTP URL to a built collection's
-`.tar.gz`. alai extracts the tarball into the collections directory as it
+tarball. alai extracts the tarball into the collections directory as it
 does a collection from an index.
 
 To add a tarball as a source, run:
@@ -260,8 +260,9 @@ collections = [
 "corp.web" = { url = "https://artifacts.example.com/corp-web-1.4.0.tar.gz" }
 ```
 
-The tarball must be gzipped, as `ansible-galaxy collection build` writes it.
-Anything else is refused before it's read or downloaded whole.
+The tarball can be compressed with gzip, as `ansible-galaxy collection build`
+writes it, or with zstd, or not at all. alai reads the compression from the
+file's content rather than its name, and refuses any other file.
 
 [Adding a collection from a tarball](casts/source-tarball.cast){ .cli-cast }
 

@@ -25,8 +25,8 @@ classifiers = [
 ]
 
 dependencies = [
-    # Exact, as alai-core 0.0.x makes no compatibility promise between releases.
-    "alai-core == 0.0.1",
+    # Patch releases only, as alai-core 0.x can break its API in a minor release but follows semver for patches.
+    "alai-core ~= 0.1.0",
     # Older releases fail on the argparse internals of current Python 3.12 and later releases.
     "argcomplete >= 3.5.2",
 ]

@@ -331,15 +331,3 @@ class TestExtractErrors:
         with pytest.raises(ArtifactError, match=r"ns\.coll 1\.0\.0: can't extract the artifact"):
             _ = get(cache, Artifact(item.name, item.version, url=item.url, cksum=cksum, size=len(data)))
         assert leftovers(cache) == []
-
-    def test_not_gzipped(self, tmp_path: Path, cache: ArtifactCache) -> None:
-        gzipped = artifact(tmp_path)
-        plain = tmp_path / "plain.tar"
-        with tarfile.open(gzipped.url.removeprefix("file://")) as src, tarfile.open(plain, "w") as dst:
-            for member in src.getmembers():
-                dst.addfile(member, src.extractfile(member))
-        data = plain.read_bytes()
-        item = Artifact(gzipped.name, gzipped.version, url=plain.as_uri(), cksum=sha256(data), size=len(data))
-
-        with pytest.raises(ArtifactError, match=r"ns\.coll 1\.0\.0: can't extract the artifact"):
-            _ = get(cache, item)

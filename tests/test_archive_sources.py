@@ -7,6 +7,7 @@ artifact is."""
 from __future__ import annotations
 
 import collections.abc as _c
+import gzip
 import os
 import shutil
 from pathlib import Path
@@ -156,7 +157,17 @@ class TestPath:
 
         assert main(["lock"]) == EXIT_ERROR
 
-        assert "notes.tar.gz isn't a gzip file, so it isn't a collection tarball" in capsys.readouterr().err
+        assert "notes.tar.gz: can't extract the artifact" in capsys.readouterr().err
+
+    def test_any_compression(self, project: Path, capsys: pytest.CaptureFixture[str]) -> None:
+        # alai-core finds the compression from the content, so neither the name nor gzip matters.
+        gzipped = project.parent / "ns-src-1.0.0.tar.gz"
+        _ = tarball(gzipped)
+        _ = (project.parent / "ns-src-1.0.0.bin").write_bytes(gzip.decompress(gzipped.read_bytes()))
+        write_sources(project, '"ns.src" = { path = "../ns-src-1.0.0.bin" }')
+
+        assert main(["sync", "-q"]) == 0
+        assert (installed_at(project / "collections", "ns.src") / "MANIFEST.json").exists()
 
     def test_replaces_the_index_copy(self, project: Path, capsys: pytest.CaptureFixture[str]) -> None:
         # The same version from a tarball isn't the index's copy: the record tells them apart.
@@ -255,13 +266,13 @@ class TestUrl:
 
         assert f"takes ns.src from {server.url}x.tar.gz, but it holds ns.other" in capsys.readouterr().err
 
-    def test_not_gzip(self, project: Path, server: IndexServer, capsys: pytest.CaptureFixture[str]) -> None:
+    def test_not_a_tarball(self, project: Path, server: IndexServer, capsys: pytest.CaptureFixture[str]) -> None:
         _ = (Path(server.root) / "page.tar.gz").write_text("<html>sign in</html>\n")
         write_sources(project, f'"ns.src" = {{ url = "{server.url}page.tar.gz" }}')
 
         assert main(["lock"]) == EXIT_ERROR
 
-        assert "page.tar.gz: not a gzip file, so not a collection tarball" in capsys.readouterr().err
+        assert "page.tar.gz: can't extract the artifact" in capsys.readouterr().err
 
     def test_not_found(self, project: Path, server: IndexServer, capsys: pytest.CaptureFixture[str]) -> None:
         write_sources(project, f'"ns.src" = {{ url = "{server.url}missing.tar.gz" }}')

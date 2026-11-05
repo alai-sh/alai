@@ -27,9 +27,6 @@ if _t.TYPE_CHECKING:
 
 LAYOUT = "collections-v1"
 """The cache directory for extracted collections; a new name if what's extracted, or how, ever changes."""
-GZIP_MAGIC = b"\x1f\x8b"
-"""The bytes every gzip file starts with (RFC 1952). A tarball source must be gzipped, as every collection build is, so
-one that isn't is refused before it's read or downloaded whole."""
 MAX_ARCHIVE_SIZE = 1 << 30
 """The most a tarball named by URL may download, with no size known beforehand: 1 GiB, far beyond any published
 collection, so a wrong or hostile response can't fill the disk."""
@@ -96,9 +93,7 @@ class ArtifactCache:
         except OSError as e:
             raise ArtifactError(f"can't write to the cache at {self.root}: {e.strerror or e}") from e
 
-    def _fetch(
-        self, url: str, shown: str, *, max_size: int, magic: bytes = b"", kind: str = "file"
-    ) -> tuple[str, str, str, int]:
+    def _fetch(self, url: str, shown: str, *, max_size: int) -> tuple[str, str, str, int]:
         """Download ``url``, called ``shown`` in messages, into a new work directory in the cache, as
         ``Fetcher.download`` does: the directory, the tarball in it, and its SHA-256 and size. The caller removes the
         directory, which is already gone if this raises."""
@@ -107,9 +102,9 @@ class ArtifactCache:
         if self._fetcher is None:
             raise ArtifactError(f"{shown} isn't in the cache, and there's no fetcher to download it")
         work = self._workdir()
-        tarball = os.path.join(work, "artifact.tar.gz")
+        tarball = os.path.join(work, "artifact")
         try:
-            digest, size = self._fetcher.download(url, tarball, max_size=max_size, magic=magic, kind=kind)
+            digest, size = self._fetcher.download(url, tarball, max_size=max_size)
         except FetchError as e:
             shutil.rmtree(work, ignore_errors=True)
             raise ArtifactError(f"can't download {shown}: {e}") from e
@@ -150,9 +145,7 @@ class ArtifactCache:
         """Download the collection tarball at ``url`` and extract it into the cache, for a source that names a URL
         rather than an index's artifact: its SHA-256, size, and the directory it's extracted to. Its collection is
         the one its ``MANIFEST.json`` names, which the caller checks."""
-        work, tarball, digest, size = self._fetch(
-            url, url, max_size=MAX_ARCHIVE_SIZE, magic=GZIP_MAGIC, kind="gzip file, so not a collection tarball"
-        )
+        work, tarball, digest, size = self._fetch(url, url, max_size=MAX_ARCHIVE_SIZE)
         try:
             target = self.path(digest)
             if self.cached(digest) is None:

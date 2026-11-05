@@ -12,7 +12,7 @@ from helpers import write_file
 
 from alai._common import ConfigError, read_toml
 from alai._config import LinkMode, Overrides, Project, find_project, load_settings, raw_manifest
-from alai._manifest import IndexPin, Manifest, Requirement, collection_name, parse_manifest
+from alai._manifest import IndexPin, Manifest, Requirement, collection_name, is_path, parse_manifest
 
 
 def load_manifest(project: Project) -> Manifest:
@@ -358,3 +358,17 @@ class TestSources:
         _ = load_settings(cwd=tmp_path, environ=environ)
         with pytest.raises(ConfigError, match=match):
             _ = manifest(tmp_path)
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("ns-col-1.0.0.tar.gz", True),
+        ("ns-col-1.0.0.tar.zst", True),
+        ("./ns-col-1.0.0.tar", True),
+        ("ns.tar", False),
+        ("ns.col>=1.0", False),
+    ],
+)
+def test_is_path(text: str, expected: bool) -> None:
+    assert is_path(text) is expected

@@ -379,11 +379,12 @@ def file_url_path(url: str) -> str:
 
 def is_path(text: str) -> bool:
     """Whether a requirement given on the command line is a directory or a tarball rather than a collection: it has a
-    ``/``, is ``.``, ``..``, starts with ``~``, or ends in ``.tar.gz``, as uv tells ``./lib``, ``lib/`` or
+    ``/``, is ``.``, ``..``, starts with ``~``, or has ``.tar.``, as uv tells ``./lib``, ``lib/`` or
     ``lib-1.0.tar.gz`` from the name ``lib``. A collection name never does, so ``community.general`` is always the
     name, as ansible-galaxy reads it, even beside a directory of that name. A URL has a ``/`` too: ``is_url`` comes
-    first."""
-    return "/" in text or text in (".", "..") or text.startswith("~") or text.endswith(".tar.gz")
+    first. Any ``.tar.`` suffix counts, as alai-core finds the compression from the content, but a bare ``.tar``
+    doesn't, as ``ns.tar`` is a valid collection name, so an uncompressed tarball is given as ``./ns-col-1.0.0.tar``."""
+    return "/" in text or text in (".", "..") or text.startswith("~") or ".tar." in text
 
 
 def is_source(text: str) -> bool:
