@@ -34,6 +34,8 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
         formatter_class=HelpFormatter,
     )
     check = add_check_args(parser)
+    # uv's --no-sync only skips installing and still locks, so it combines with --frozen and --locked. alai's skips
+    # both, as uv's --frozen --no-sync does, so those flags would have nothing to do and are refused.
     check.add_argument("--no-sync", action="store_true", help="run without locking or installing anything first")
     exactness = parser.add_mutually_exclusive_group()
     exactness.add_argument(

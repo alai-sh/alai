@@ -346,6 +346,7 @@ class TestSources:
                 r"isn't an http or https URL; a tarball on disk",
             ),
             ('[project.sources]\n"a.b" = { url = "a.tar.gz" }', r"isn't an http or https URL"),
+            ('[project.sources]\n"a.b" = { url = "https://me:pw@x/a.tar.gz" }', "has credentials in it"),
             ('[project.sources]\n"a.b" = { path = "p", rev = "x" }', "got path, rev"),
             ('[project.sources]\n"a.b" = { path = "p", editable = "yes" }', "'editable' must be true or false"),
             ('[project.sources]\n"a.b" = { index = "x", path = "p" }', "got index, path"),

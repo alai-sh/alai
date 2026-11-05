@@ -341,6 +341,13 @@ class TestListing:
         assert captured.err == "No project found, so only ansible.builtin and eda.builtin count as installed\n"
         assert captured.out.splitlines()[0].startswith("── Not installed (2) ")
 
+    def test_installed_only_without_a_match(self, project: Path, capsys: pytest.CaptureFixture[str]) -> None:
+        # Only plugins in collections that aren't installed match, so the listing and the FQCN detail have nothing.
+        assert find("docker_container", "--installed", "-t", "connection") == EXIT_NOT_FOUND
+        assert find("community.docker.docker_container", "--installed") == EXIT_NOT_FOUND
+
+        assert capsys.readouterr().err.count("no plugin matches") == 2
+
     def test_no_project_installed_with(
         self, project: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
     ) -> None:
@@ -826,7 +833,7 @@ class TestDetail:
     def test_legacy_not_found(self, project: Path, capsys: pytest.CaptureFixture[str]) -> None:
         assert find("ansible.legacy.nothing") == EXIT_NOT_FOUND
 
-        assert "warning: no plugin matches 'ansible.legacy.nothing'" in capsys.readouterr().err
+        assert "error: no plugin matches 'ansible.legacy.nothing'" in capsys.readouterr().err
 
 
 class TestJson:
@@ -948,7 +955,7 @@ class TestNotFound:
 
         captured = capsys.readouterr()
         assert captured.out == ""
-        assert captured.err == "warning: no plugin matches 'dockr_container'; did you mean 'docker_container'?\n"
+        assert captured.err == "error: no plugin matches 'dockr_container'; did you mean 'docker_container'?\n"
 
     def test_with_type(self, project: Path, capsys: pytest.CaptureFixture[str]) -> None:
         assert find("docker_container", "-t", "filter", "-t", "lookup") == EXIT_NOT_FOUND
@@ -1002,6 +1009,9 @@ def test_invalid_limit(value: str, message: str, capsys: pytest.CaptureFixture[s
         ("floating_ips management", "floating_ips management."),
         ("tasks/main.yml for the role", "tasks/main.yml for the role."),
         ("  padded  ", "Padded."),
+        ("installs the L(Bind9,https://isc.org) DNS server", "Installs the Bind9 DNS server."),
+        ("C(lxc) runs tasks", "lxc runs tasks."),
+        ("  Returns V(pong)  ", "Returns pong."),
     ],
 )
 def test_sentence(text: str, expected: str) -> None:
@@ -1062,18 +1072,6 @@ def test_markup_links_only_to_the_web() -> None:
         (" ", None, None),
         ("x", "link", None),
     ]
-
-
-@pytest.mark.parametrize(
-    ("text", "expected"),
-    [
-        ("installs the L(Bind9,https://isc.org) DNS server", "Installs the Bind9 DNS server."),
-        ("C(lxc) runs tasks", "lxc runs tasks."),
-        ("  Returns V(pong)  ", "Returns pong."),
-    ],
-)
-def test_as_sentence(text: str, expected: str) -> None:
-    assert "".join(piece for piece, _, _ in as_sentence(markup(text))) == expected
 
 
 class TestMarkupOutput:

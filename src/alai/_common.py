@@ -13,6 +13,7 @@ import re
 # typing.TYPE_CHECKING without importing typing, which this module, loaded by every command, otherwise doesn't need.
 TYPE_CHECKING = False
 if TYPE_CHECKING:
+    from alai_core.semver import Version
     from alai_core.toml import Document
 
 NAME_RE = re.compile(r"[a-z0-9][a-z0-9_-]*")
@@ -47,7 +48,8 @@ EXIT_ERROR = 2
 EXIT_STALE = 1
 """``--check`` or ``--locked`` found the lock missing, or resolving would change it."""
 EXIT_NOT_FOUND = 1
-"""Nothing matched, as ``uv pip show`` exits 1 for a package it can't find."""
+"""Nothing matched, as ``uv pip show`` exits 1 for a package it can't find. uv says so with a warning, but alai
+reports it as an error, since the exit code says one happened and -q mustn't hide why."""
 
 
 MAX_THREADS = 4
@@ -130,6 +132,57 @@ def inside(path: str, parent: str) -> bool:
     """Whether ``path`` is ``parent`` or under it. Both are absolute and resolved alike (``os.path.realpath``) by
     the caller, so a symlink doesn't hide one in the other."""
     return os.path.commonpath((path, parent)) == parent
+
+
+WORKDIR_PREFIX = ".tmp-"
+"""What a ``cache_workdir`` is named with, in the cache directory it's made in."""
+_WORKDIR_STALE = 24 * 60 * 60
+"""How old a work directory is before a killed run is taken to have left it: a day, far longer than a download or an
+extraction takes."""
+
+
+def cache_workdir(root: str) -> str:
+    """A new temporary directory in the cache directory ``root``, made if it isn't there, for the caller to remove.
+    The work directories a killed run left there are removed once they're a day old. OSError if it can't be made."""
+    import contextlib
+    import shutil
+    import tempfile
+    import time
+
+    os.makedirs(root, exist_ok=True)
+    cutoff = time.time() - _WORKDIR_STALE
+    for name in os.listdir(root):
+        if name.startswith(WORKDIR_PREFIX):
+            path = os.path.join(root, name)
+            with contextlib.suppress(OSError):
+                if os.lstat(path).st_mtime < cutoff:
+                    shutil.rmtree(path, ignore_errors=True)
+    return tempfile.mkdtemp(dir=root, prefix=WORKDIR_PREFIX)
+
+
+def rename_into_cache(source: str, target: str) -> None:
+    """Move the directory ``source`` to ``target`` in the cache. When another alai put ``target`` there meanwhile,
+    theirs is as good as ours and is kept; any other OSError is raised."""
+    try:
+        os.rename(source, target)
+    except OSError:
+        if not os.path.isdir(target):
+            raise
+
+
+def manifest_info(path: str) -> tuple[str, Version] | None:
+    """The collection the ``MANIFEST.json`` at ``path`` is for, with its version, or None if it can't be read or
+    doesn't say."""
+    import json
+
+    from alai_core.semver import Version
+
+    try:
+        with open(path, "rb") as f:
+            info = json.load(f)["collection_info"]
+        return f"{info['namespace']}.{info['name']}", Version(info["version"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
 
 
 def write_atomic(path: str, data: bytes, *, mode: int | None = None) -> None:

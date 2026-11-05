@@ -17,7 +17,7 @@ import typing as _t
 
 from alai_core import semver
 from alai_core.index import CollectionVersion
-from alai_core.pep440 import SpecifierSet, Version
+from alai_core.pep440 import SpecifierSet
 from alai_core.semver import VersionReq
 
 from . import _native
@@ -102,7 +102,6 @@ def resolve(
     locked: Lock | None = None,
     installed: _c.Mapping[str, semver.Version] | None = None,
     upgrade: bool | _c.Collection[str] = False,
-    ansible_version: Version | None = None,
     report: _c.Callable[[str, int], None] | None = None,
     origin: str = "the project",
 ) -> Resolution:
@@ -111,15 +110,10 @@ def resolve(
     ``indexes`` are the configured indexes in the order they're searched, the default last. ``locked`` is the current lock,
     whose versions are kept while they still fit, unless ``upgrade`` is true or names the collection. ``installed`` is
     the same by version alone, from whichever index the collection comes from, for what's installed outside a lock.
-    ``ansible_version`` is the one ansible-core version to resolve for, when it's known: each version's own
-    ``requires_ansible`` must then contain it, upper bounds included, in place of the project's range.
     ``origin`` is what the manifest's own requirements are said to come from, in errors: ``the project``, or ``the
     command line`` for ones given there. ``report``, for progress, is called with each collection as its versions are
     looked at, and how many index files have been read so far.
     """
-    project = manifest.requires_ansible
-    if ansible_version is not None and project is not None and not project.contains(ansible_version):
-        raise ResolutionError(f"ansible-core {ansible_version} isn't in the project's requires_ansible {project}")
     by_name: dict[str, IndexClient] = {}
     for client in indexes:
         if client.index.name in by_name:
@@ -128,7 +122,7 @@ def resolve(
     # The locked and installed versions to prefer: all of them, unless upgrade says otherwise.
     preferred = {c.name: c for c in locked.collections if not selects(upgrade, c.name)} if locked is not None else {}
     kept = {name: version for name, version in (installed or {}).items() if not selects(upgrade, name)}
-    table = _Table(manifest, by_name, preferred, ansible_version, report, kept, origin)
+    table = _Table(manifest, by_name, preferred, report, kept, origin)
     roots = table.roots()
     table.load(roots)
     try:
@@ -196,7 +190,6 @@ class _Table:
         manifest: Manifest,
         indexes: dict[str, IndexClient],
         preferred: dict[str, LockedCollection],
-        ansible_version: Version | None,
         report: _c.Callable[[str, int], None] | None = None,
         installed: dict[str, semver.Version] | None = None,
         origin: str = "the project",
@@ -214,7 +207,6 @@ class _Table:
         self._indexes = indexes
         """By name, in the order they're searched: built from a sequence, so the order is the configured one."""
         self._preferred = preferred
-        self._ansible_version = ansible_version
         self._files: dict[tuple[str, str], IndexFile | None] = {}
         self._packages: dict[str, tuple[_Entry, ...]] = {}
         """Every collection the requirements can reach, as the search takes it: each version with its dependencies,
@@ -426,8 +418,7 @@ class _Table:
                     out.append(f"skipped {name} {text}, which can't be used: {problem}")
             theirs = candidate.version.requires_ansible
             if (
-                self._ansible_version is None
-                and project is not None
+                project is not None
                 and theirs is not None
                 and name not in self._manifest.ignore_requires_ansible
                 and theirs.narrower_than(project)
@@ -587,12 +578,6 @@ class _Table:
             return "is yanked"
         theirs = version.requires_ansible
         if theirs is None or name in self._manifest.ignore_requires_ansible:
-            return None
-        if self._ansible_version is not None:
-            # Resolving for one ansible-core: the version's whole range must contain it, as ansible-galaxy checks the
-            # running ansible-core.
-            if not theirs.contains(self._ansible_version):
-                return f"doesn't support ansible-core {self._ansible_version}"
             return None
         project = self._manifest.requires_ansible
         if project is not None and not theirs.admits_lower_bound(project):

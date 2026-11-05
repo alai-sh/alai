@@ -53,8 +53,12 @@ tool now enforces.
   a scratch project and match its defaults, flags and output; for Ansible's
   side, read ansible-core's source. Say why in a code comment whenever alai
   differs.
-- Nothing is released, so there are no backwards-compatibility shims or
-  aliases: rename and replace outright.
+- alai is released in preview, as 0.x, under semver. A patch release only
+  fixes bugs, and a change that breaks `alai.toml`, `alai.lock`, the CLI or
+  its output waits for the next minor release. Every user-visible change
+  goes in `CHANGELOG.md` under Unreleased. There are still no
+  backwards-compatibility shims or aliases: rename and replace outright, and
+  say so in the changelog.
 - Checks:
   - `uv run tox run -f sanity` (ruff, basedpyright, `cargo fmt` and clippy)
   - `uv run tox run -f py314` (tests; any of `py310` to `py315`, and the

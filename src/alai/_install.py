@@ -22,7 +22,7 @@ import threading
 
 from alai_core.semver import Version
 
-from ._common import Error, Record, selects, write_atomic
+from ._common import Error, Record, manifest_info, selects, write_atomic
 from ._config import LinkMode
 from ._output import debug, trace, warn
 
@@ -101,7 +101,8 @@ def installed(collections_dir: str) -> dict[str, Installed]:
             path = os.path.join(root, namespace, short)
             # A link's target says where it's from, so it has no record of its own.
             record = None if os.path.islink(path) else _read_record(collections_dir, name)
-            found[name] = Installed(name, _manifest_version(os.path.join(path, "MANIFEST.json")), path, record)
+            info = manifest_info(os.path.join(path, "MANIFEST.json"))
+            found[name] = Installed(name, info[1] if info is not None else None, path, record)
     return found
 
 
@@ -179,15 +180,18 @@ def place(
         for path in glob.glob(os.path.join(glob.escape(parent), f"{_TEMP}*-{glob.escape(short)}-*")):
             _rmtree(path)
         temp = os.path.join(parent, f"{_TEMP}new-{short}-{secrets.token_hex(4)}")
+        old = None
         try:
             make(temp)
-            old = None
             if os.path.lexists(target):
                 old = os.path.join(parent, f"{_TEMP}old-{short}-{secrets.token_hex(4)}")
                 os.rename(target, old)
             os.rename(temp, target)
         except BaseException:
             _rmtree(temp)
+            # The old copy was moved aside but nothing took its place.
+            if old is not None and not os.path.lexists(target):
+                os.rename(old, target)
             raise
         if old is not None:
             _rmtree(old)
@@ -216,7 +220,7 @@ def write_record(collections_dir: str, name: str, record: dict[str, object] | No
     hashes of the files that decide when it's copied again, as uv records a directory's ``pyproject.toml`` time in
     ``uv_cache.json`` (see ``_sync.directory_record``); one from a tarball holds its path or URL and its sha256,
     as uv's ``direct_url.json`` holds an archive's URL, so a new tarball of the same version replaces it; a git source
-    will record its commit. ansible-galaxy writes none for a directory, and a file in
+    records its commit. ansible-galaxy writes none for a directory, and a file in
     the collection would be one ``FILES.json`` doesn't list, so it's kept beside the collections.
     """
     path = os.path.join(namespaces_dir(collections_dir), _RECORDS, f"{name}.json")
@@ -361,16 +365,6 @@ def current_umask() -> int:
     mask = os.umask(0o022)
     os.umask(mask)
     return mask
-
-
-def _manifest_version(path: str) -> Version | None:
-    try:
-        with open(path, "rb") as f:
-            data = json.load(f)
-        text = data["collection_info"]["version"]
-        return Version(text) if isinstance(text, str) else None
-    except (OSError, ValueError, KeyError, TypeError):
-        return None
 
 
 def _subdirs(path: str) -> list[str]:

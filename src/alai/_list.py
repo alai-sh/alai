@@ -17,7 +17,6 @@ from ._common import ConfigError, Record, home_path
 from ._config import Settings
 from ._install import Installed, installed, namespace_links
 from ._lock import IndexSource, Lock, LockedCollection, LockedRoot, lock_path, read_lock, record_source
-from ._manifest import parse_manifest
 from ._output import BLUE, BOLD, CYAN, DIM, GREEN, RED, YELLOW, Piece, Renderer, status, styled
 
 LOCKED = "locked"
@@ -140,7 +139,7 @@ def collect(settings: Settings, cdir: str, lock: Lock | None) -> list[Row]:
             row.status = DIFFERENT
             row.note = _difference(settings, row, entry, want, link=link, same_source=same_source)
 
-    groups = [g for g in DEFAULT_GROUPS if g in parse_manifest(lock.manifest).groups]
+    groups = [g for g in DEFAULT_GROUPS if g in lock.parsed.groups]
     synced = [*lock.select(groups), *([lock.root] if lock.root is not None else [])]
     rows.extend(
         Row(

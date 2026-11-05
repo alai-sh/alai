@@ -25,7 +25,7 @@ import tempfile
 import threading
 import urllib.parse
 
-from ._common import Error
+from ._common import Error, cache_workdir, rename_into_cache
 from ._lock import GIT_COMMIT_RE
 from ._output import DIM, status, styled, trace
 from ._progress import Suspended
@@ -102,8 +102,7 @@ def fetch(cache_dir: str, url: str, commit: str, *, offline: bool) -> str:
     parent = repository_dir(cache_dir, url)
     target = os.path.join(parent, commit)
     try:
-        os.makedirs(parent, exist_ok=True)
-        work = tempfile.mkdtemp(dir=parent, prefix=".tmp-")
+        work = cache_workdir(parent)
     except OSError as e:
         raise GitError(f"can't write to the cache at {parent}: {e.strerror or e}") from e
     try:
@@ -138,12 +137,7 @@ def fetch(cache_dir: str, url: str, commit: str, *, offline: bool) -> str:
                     else:
                         os.remove(path)
             dirs[:] = [d for d in dirs if d != ".git"]
-        try:
-            os.rename(checkout, target)
-        except OSError:
-            # Another alai fetched the same commit meanwhile; theirs is as good as ours.
-            if not os.path.isdir(target):
-                raise
+        rename_into_cache(checkout, target)
     except OSError as e:
         raise GitError(f"can't fetch {url}@{commit[:7]} into the cache: {e.strerror or e}") from e
     finally:

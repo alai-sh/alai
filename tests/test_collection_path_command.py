@@ -11,7 +11,7 @@ import typing as _t
 from pathlib import Path
 
 import pytest
-from helpers import write_project
+from helpers import Repo, collection_source, write_project, write_sources
 from index_data import plugin
 from index_server import IndexServer
 from python_index import make_python_index
@@ -90,6 +90,30 @@ class TestWhere:
         assert second is not None
         assert second["origin"] == "locked"
 
+    def test_locked_directory_source(self, project: Path, capsys: pytest.CaptureFixture[str]) -> None:
+        src = collection_source(project.parent / "src")
+        write_sources(project, '"ns.src" = { path = "../src" }')
+        assert main(["lock", "-q"]) == 0
+
+        found = entry(capsys, "ns.src")
+
+        assert found is not None
+        assert (found["version"], found["origin"], found["path"]) == ("1.0.0", "locked", str(src))
+
+    def test_locked_git_source(self, project: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+        repo = Repo(tmp_path / "repo")
+        repo.collection()
+        _ = repo.commit()
+        write_sources(project, f'"ns.src" = {{ git = "{repo.url}" }}')
+        assert main(["lock", "-q"]) == 0
+
+        found = entry(capsys, "ns.src")
+
+        assert found is not None
+        assert (found["version"], found["origin"]) == ("1.0.0", "locked")
+        assert (Path(found["path"]) / "galaxy.yml").is_file()
+        assert Path(found["path"]).is_relative_to(project.parent / "cache")
+
     def test_collection_project(self, project: Path, capsys: pytest.CaptureFixture[str]) -> None:
         _ = (project / "alai.toml").write_text("")
         _ = (project / "galaxy.yml").write_text(
@@ -130,7 +154,7 @@ class TestWhere:
         assert found is not None
         assert found["version"] == "2.20.0"
 
-    def test_find_keeps_the_source(self, project: Path, capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
+    def test_find_keeps_the_source(self, project: Path, capsys: pytest.CaptureFixture[str]) -> None:
         # alai find reads the same sdists, so what it fetched is found without another download.
         _ = main(["find", "copy", "--no-index"])
 

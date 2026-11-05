@@ -263,12 +263,6 @@ class TestIndexFile:
 
 
 @pytest.fixture
-def fetcher() -> _c.Iterator[Fetcher]:
-    with Fetcher(user_agent="alai-test") as f:
-        yield f
-
-
-@pytest.fixture
 def site(tmp_path: Path) -> Path:
     root = tmp_path / "site"
     _ = shutil.copytree(EXAMPLE, root)

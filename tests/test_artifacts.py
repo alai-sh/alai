@@ -3,13 +3,11 @@
 
 from __future__ import annotations
 
-import collections.abc as _c
 import gzip
 import hashlib
 import io
 import json
 import os
-import socket
 import stat
 import tarfile
 from pathlib import Path
@@ -22,12 +20,6 @@ from index_server import IndexServer, serve
 from alai import _artifacts, _fetch
 from alai._artifacts import Artifact, ArtifactCache, ArtifactError
 from alai._fetch import Fetcher
-
-
-@pytest.fixture
-def fetcher() -> _c.Iterator[Fetcher]:
-    with Fetcher(user_agent="alai-test/1") as f:
-        yield f
 
 
 @pytest.fixture
@@ -203,12 +195,10 @@ class TestDownloadErrors:
                 _ = get(cache, Artifact("ns.coll", Version("1.0.0"), url=url, cksum="0" * 64, size=1))
         assert leftovers(cache) == []
 
-    def test_connection_refused(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_connection_refused(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, refused_port: int) -> None:
         # Retried without waiting: the client takes the backoff when the Fetcher is made, so it's made after this.
         monkeypatch.setattr(_fetch, "_BACKOFF", 0.0)
-        with socket.socket() as s:
-            s.bind(("127.0.0.1", 0))
-            port = s.getsockname()[1]
+        port = refused_port
         url = f"http://127.0.0.1:{port}/x.tar.gz"
 
         with (

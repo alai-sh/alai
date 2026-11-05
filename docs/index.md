@@ -5,8 +5,12 @@ inspired by [uv](https://docs.astral.sh/uv/).
 
 !!! warning "Preview"
 
-    alai is in preview and its interface isn't stable yet. Expect breaking
-    changes as workflows are worked out and adjusted.
+    alai is released in preview, as a 0.x version under
+    [semantic versioning](https://semver.org/). Its interface can still
+    change as workflows are worked out, so a release that breaks something
+    bumps the minor version, from 0.1 to 0.2, and lists the change in the
+    [changelog](https://github.com/alai-sh/alai/blob/main/CHANGELOG.md). A
+    patch release, such as 0.1.1, only fixes bugs.
 
 !!! note "A word on how alai is made"
 
@@ -63,35 +67,36 @@ for collections to be managed there.
 
 ## Installing
 
-alai isn't published yet, so the recommended way to install it is as a tool
-with [uv](https://docs.astral.sh/uv/getting-started/installation/), from the
-git repository:
+alai is published on PyPI as `alai-sh`. The recommended way to install it
+is as a tool with
+[uv](https://docs.astral.sh/uv/getting-started/installation/):
 
 ```console
-$ uv tool install https://github.com/alai-sh/alai/archive/refs/heads/main.tar.gz
+$ uv tool install alai-sh
 ```
 
 uv puts the `alai` command on your `PATH` in an environment of its own, and
-finds or downloads Python 3.10 or later for it. To update to the latest
-source, run the same command with `--reinstall`, as `uv tool upgrade`
-doesn't look for new commits. To remove alai, run `uv tool uninstall
-alai-sh`.
+finds or downloads Python 3.10 or later for it. To update alai, run
+`uv tool upgrade alai-sh`, and to remove it, run `uv tool uninstall alai-sh`.
 
-It is possible to install alai using any other Python package installer, but
-`uv` is recommended as it keeps the environment isolated and puts `alai` on
-the `PATH` automatically.
+When you want to try alai without installing it, `uvx` runs it in a
+temporary environment. The package and the command have different names, so
+tell `uvx` which package the command comes from:
 
-Part of alai is written in Rust, so installing from source requires the Rust
-toolchain. Rust 1.92 or later is required with `cargo` on your `PATH`
-([rustup](https://rustup.rs/) installs it), and the build takes a minute or
-so.
+```console
+$ uvx --from alai-sh alai --version
+```
 
-!!! note "Until alai is on PyPI"
+It is possible to install alai using any other Python package installer,
+such as `pip install alai-sh`, but `uv` is recommended as it keeps the
+environment isolated and puts `alai` on the `PATH` automatically.
 
-    Installing from GitHub is only needed until alai is published on PyPI.
-    Once it is, `uv tool install alai-sh` will install alai and `uv tool
-    upgrade alai-sh` will update it. The PyPI release will be a ready-built
-    wheel that works on most Linux and macOS systems without Rust.
+Part of alai is written in Rust, so the release on PyPI comes as ready-built
+wheels for Linux on x86_64 and aarch64, with glibc or musl, and for macOS on
+Apple silicon. On any other platform, such as an Intel Mac, the installer
+builds alai from the source distribution. The build needs Rust 1.92 or later
+with `cargo` on your `PATH` ([rustup](https://rustup.rs/) installs it), and
+takes a minute or so.
 
 ## A quick look
 

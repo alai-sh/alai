@@ -339,7 +339,7 @@ Also takes the [global options](#global-options).
 
 ## alai find
 
-Find plugins, roles and playbooks by name in the files of the installed collections and in the indexes' plugin lists. The ones in installed collections and ansible.builtin are listed first. QUERY is part of a name (user finds win_user too), a glob ('*_info', 'community.general.*') or a FQCN. A FQCN shows that plugin's details, such as where its redirects lead and how to install it.
+Find plugins, roles and playbooks by name in the files of the installed collections and in the indexes' plugin lists. The ones in installed collections, ansible.builtin and eda.builtin are listed first. QUERY is part of a name (user finds win_user too), a glob ('*_info', 'community.general.*') or a FQCN. A FQCN shows that plugin's details, such as where its redirects lead and how to install it.
 
 [Finding plugins](casts/find.cast){ .cli-cast }
 
@@ -364,7 +364,7 @@ $ alai find [OPTIONS] QUERY
 |---|---|
 | `-t`, `--type TYPE` | Only this type, as ansible-doc `-t` names them (module, filter, lookup...) or role or playbook (can be repeated) |
 | `-x`, `--exact` | Match whole names only, not names that contain QUERY |
-| `--installed` | Only plugins in installed collections and ansible.builtin |
+| `--installed` | Only plugins in installed collections, ansible.builtin and eda.builtin |
 | `-a`, `--all` | Also list removed plugins and aliases of listed plugins that match part of a name, as ones named exactly always are |
 | `--no-index` | Search only installed collections, ansible.builtin and eda.builtin, not the indexes' plugin lists |
 | `--refresh` | Read the installed collections' plugins again, rather than from the cache, as after editing one |

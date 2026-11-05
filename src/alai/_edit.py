@@ -79,8 +79,7 @@ def add(
             collection, source = read_given_source(settings, given, editable=edit, relative_to=settings.project.root)
             parsed.append(Requirement.parse(collection.name))
             sources[collection.name] = source
-            if isinstance(source, (UrlSource, GitSource)):
-                fetched[collection.name] = collection
+            fetched[collection.name] = collection
         bare: list[str] = []
         for requirement in parsed:
             names = [_name_of(v) for v in doc.values(path)]
@@ -161,7 +160,7 @@ def remove(
             if name not in found:
                 raise ConfigError(_not_there(doc, name, group))
             doc.remove(path, found.index(name))
-            _drop_path_source(doc, name)
+            _drop_path_source(settings, doc, name)
         if frozen:
             _write(config, str(doc))
             return True
@@ -205,15 +204,14 @@ def _lock_and_sync(
 ) -> bool:
     """Resolve ``doc`` as the new ``alai.toml``, let ``finish`` make its last edits from the lock, and write both;
     then sync, with ``group`` installed as well as the default groups, reinstalling ``reinstall``. Nothing is written
-    if resolving fails. ``fetched`` are the URL sources already downloaded, by name, so they aren't again.
+    if resolving fails. ``fetched`` are the sources already read, by name, so they aren't again.
 
     With ``locked``, a missing ``alai.lock``, or one the edit would change, is an error that writes nothing (False),
     checked before resolving and after, as ``alai sync --locked`` does. Otherwise ``alai.toml`` is written, as uv
     writes ``pyproject.toml`` when the requirement is only spelt differently, and ``alai.lock`` kept as it is.
     """
     started = time.monotonic()
-    raw, manifest = with_root(settings, raw_manifest(doc.data(), config))
-    manifest.local.update(fetched or {})
+    raw, manifest = with_root(settings, raw_manifest(doc.data(), config), local=fetched)
     path = lock_path(settings.project.root)
     existing = read_lock(path)
     if locked and existing is None:
@@ -261,16 +259,20 @@ def _by_source(settings: Settings, doc: Document, given: str) -> str | None:
     )
 
 
-def _drop_path_source(doc: Document, name: str) -> None:
+def _drop_path_source(settings: Settings, doc: Document, name: str) -> None:
     """Remove ``name``'s ``[project.sources]`` entry when it's a directory, a tarball or a git repository and
-    nothing lists the collection any more, as ``uv remove`` drops its source. An index pin stays: it also applies to what other
-    collections depend on."""
+    nothing lists the collection any more, as ``uv remove`` drops its source. An index pin stays: it also applies to
+    what other collections depend on. In a collection project, ``galaxy.yml``'s dependencies list collections too."""
     raw = raw_manifest(doc.data(), "alai.toml")
     source = raw.sources.get(name)
     if source is None or not {"path", "url", "git"} & set(source):
         return
-    listed = [*raw.collections, *(r for items in raw.groups.values() for r in items)]
-    if name in (_name_of(r) for r in listed):
+    listed = [_name_of(r) for r in (*raw.collections, *(r for items in raw.groups.values() for r in items))]
+    if settings.project.collection_file is not None:
+        from ._galaxy import read_source_collection
+
+        listed += [_name_of(r) for r in read_source_collection(settings.project.collection_file).dependencies]
+    if name in listed:
         return
     doc.remove_key(("project", "sources", name))
 

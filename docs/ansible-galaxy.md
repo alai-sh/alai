@@ -218,8 +218,8 @@ the same and needs `--force` to reinstall. With alai, use
 `alai sync --reinstall-collection NAME` for one collection, or `--reinstall`
 for all of them.
 
-When the collection was installed with `hardlink` or `symlink`, which
-`auto` uses on filesystems like ext4, the edit is also in alai's cache. A
+When the collection was installed with `hardlink`, which `auto` uses on
+filesystems like ext4, or with `symlink`, the edit is also in alai's cache. A
 reinstall then brings the edit back, so see
 [`link_mode`](alai-toml.md#link_mode) for how to get a clean copy.
 

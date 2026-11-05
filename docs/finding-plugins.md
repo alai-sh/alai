@@ -31,7 +31,7 @@ short names is also how to search a subdirectory, as in
 `alai find 'cloud.*'`.
 
 `-x/--exact` matches whole names only, so `alai find -x user` leaves out
-`win_user`. `-t/--type` limits the search to one type, using the names
+`win_user`. `-t/--type` limits the search to the types given, using the names
 `ansible-doc -t` takes (`module`, `filter`, `lookup`, `callback`…), plus
 `role` and `playbook`.
 

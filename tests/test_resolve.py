@@ -3,12 +3,10 @@
 
 from __future__ import annotations
 
-import collections.abc as _c
 import typing as _t
 from pathlib import Path
 
 import pytest
-from alai_core.pep440 import Version as AnsibleVersion
 from alai_core.semver import Version
 from alai_core.toml import loads
 from index_data import cksum, index_path, make_index, v
@@ -31,12 +29,6 @@ def index_url(collection: LockedCollection) -> str:
 
 def manifest(toml: str) -> Manifest:
     return parse_manifest(raw_manifest(loads(toml), "alai.toml"))
-
-
-@pytest.fixture
-def fetcher(tmp_path: Path) -> _c.Iterator[Fetcher]:
-    with Fetcher(user_agent="alai-test") as f:
-        yield f
 
 
 class Indexes:
@@ -517,62 +509,6 @@ class TestRequiresAnsible:
         indexes.add("alai", {"a.a": [v("1.0.0", ra=">=2.15"), v("2.0.0", ra=">=2.99")]})
 
         assert chosen(resolve(manifest(PROJECT), indexes.clients)) == {"a.a": "2.0.0"}
-
-    def test_ansible_version_honours_upper_bounds(self, indexes: Indexes) -> None:
-        indexes.add("alai", {"a.a": [v("1.0.0", ra=">=2.15"), v("2.0.0", ra=">=2.15,<2.19")]})
-
-        result = resolve(manifest(self.TOML), indexes.clients, ansible_version=AnsibleVersion("2.19.0"))
-
-        assert chosen(result) == {"a.a": "1.0.0"}
-        assert result.warnings == ()
-
-    def test_ansible_version_replaces_the_range_rule(self, indexes: Indexes) -> None:
-        # >=2.18 starts after the project's >=2.17, but supports the one version being resolved for.
-        indexes.add("alai", {"a.a": [v("1.0.0", ra=">=2.15"), v("2.0.0", ra=">=2.18")]})
-
-        result = resolve(manifest(self.TOML), indexes.clients, ansible_version=AnsibleVersion("2.19.1"))
-
-        assert chosen(result) == {"a.a": "2.0.0"}
-
-    def test_ansible_version_compares_its_base(self, indexes: Indexes) -> None:
-        # As ansible-core does: 2.19.0rc1 counts as 2.19.0.
-        indexes.add("alai", {"a.a": [v("1.0.0", ra=">=2.19")]})
-
-        result = resolve(manifest(PROJECT), indexes.clients, ansible_version=AnsibleVersion("2.19.0rc1"))
-
-        assert chosen(result) == {"a.a": "1.0.0"}
-
-    def test_ansible_version_without_a_project_range(self, indexes: Indexes) -> None:
-        indexes.add("alai", {"a.a": [v("1.0.0", ra=">=2.15"), v("2.0.0", ra=">=2.20")]})
-
-        result = resolve(manifest(PROJECT), indexes.clients, ansible_version=AnsibleVersion("2.17.0"))
-
-        assert chosen(result) == {"a.a": "1.0.0"}
-
-    def test_ansible_version_with_ignore(self, indexes: Indexes) -> None:
-        indexes.add("alai", {"a.a": [v("1.0.0", ra=">=2.99")]})
-        toml = PROJECT + '[project.overrides]\nignore_requires_ansible = ["a.a"]\n'
-
-        assert chosen(resolve(manifest(toml), indexes.clients, ansible_version=AnsibleVersion("2.17.0"))) == {
-            "a.a": "1.0.0"
-        }
-
-    def test_ansible_version_left_out_reason(self, indexes: Indexes) -> None:
-        indexes.add("alai", {"a.a": [v("1.0.0", ra="<2.17")]})
-
-        with pytest.raises(
-            ResolutionError,
-            match=r"Because a\.a==1\.0\.0 doesn't support ansible-core 2\.19\.0 and the project depends on a\.a, ",
-        ):
-            _ = resolve(manifest(PROJECT), indexes.clients, ansible_version=AnsibleVersion("2.19.0"))
-
-    def test_ansible_version_outside_the_project_range(self, indexes: Indexes) -> None:
-        indexes.add("alai", {"a.a": [v("1.0.0")]})
-
-        with pytest.raises(
-            ResolutionError, match=r"^ansible-core 2\.16\.0 isn't in the project's requires_ansible >=2\.17$"
-        ):
-            _ = resolve(manifest(self.TOML), indexes.clients, ansible_version=AnsibleVersion("2.16.0"))
 
 
 class TestOverrides:

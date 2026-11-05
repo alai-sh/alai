@@ -40,9 +40,9 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
         "find",
         help="find which collections have a plugin, role or playbook",
         description="Find plugins, roles and playbooks by name in the files of the installed collections and in the "
-        + "indexes' plugin lists. The ones in installed collections and ansible.builtin are listed first. QUERY is "
-        + "part of a name (user finds win_user too), a glob ('*_info', 'community.general.*') or a FQCN. A FQCN shows "
-        + "that plugin's details, such as where its redirects lead and how to install it.",
+        + "indexes' plugin lists. The ones in installed collections, ansible.builtin and eda.builtin are listed first. "
+        + "QUERY is part of a name (user finds win_user too), a glob ('*_info', 'community.general.*') or a FQCN. A "
+        + "FQCN shows that plugin's details, such as where its redirects lead and how to install it.",
         formatter_class=HelpFormatter,
     )
     find.add_argument("query", metavar="QUERY", help="part of a name, a glob, or a FQCN")
@@ -62,7 +62,7 @@ def register(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
     find.add_argument(
         "--installed",
         action="store_true",
-        help="only plugins in installed collections and ansible.builtin",
+        help="only plugins in installed collections, ansible.builtin and eda.builtin",
     )
     find.add_argument(
         "-a",

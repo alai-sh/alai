@@ -48,10 +48,18 @@ def main(argv: _c.Sequence[str] | None = None) -> int:
         return EXIT_ERROR
 
     try:
-        return handler(args)
+        code = handler(args)
+        # Flushed here so a closed pipe shows up where it's handled, not in the interpreter's flush at exit.
+        sys.stdout.flush()
+        return code
     except Error as e:
         _output.error(str(e))
         return EXIT_ERROR
+    except BrokenPipeError:
+        # The reader, such as head, closed the pipe: not an error, as uv treats it. Python flushes stdout again at exit,
+        # so it's pointed at /dev/null to keep that from raising too.
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        return 0
 
 
 def _build_parser() -> argparse.ArgumentParser:

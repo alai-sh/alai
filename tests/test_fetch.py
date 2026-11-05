@@ -10,7 +10,6 @@ import json
 import os
 import re
 import shutil
-import socket
 import ssl
 import time
 import typing as _t
@@ -65,12 +64,6 @@ def tls_server(site: Path, ca: trustme.CA) -> _c.Iterator[IndexServer]:
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     ca.issue_cert("127.0.0.1").configure_cert(context)
     yield from serve(site, context)
-
-
-@pytest.fixture
-def fetcher() -> _c.Iterator[Fetcher]:
-    with Fetcher(user_agent="alai-test/1") as f:
-        yield f
 
 
 def cache_file(tmp_path: Path, name: str = "a.json") -> str:
@@ -236,10 +229,8 @@ class TestHttp:
         ):
             _ = f.get(f"{tls_server.url}a.json", None)
 
-    def test_connection_refused(self, fetcher: Fetcher) -> None:
-        with socket.socket() as s:
-            s.bind(("127.0.0.1", 0))
-            port = s.getsockname()[1]
+    def test_connection_refused(self, fetcher: Fetcher, refused_port: int) -> None:
+        port = refused_port
 
         with pytest.raises(FetchError, match=rf"127\.0\.0\.1:{port}/a\.json: can't connect"):
             _ = fetcher.get(f"http://127.0.0.1:{port}/a.json", None)
@@ -328,10 +319,8 @@ class TestErrors:
         with Fetcher(user_agent="t") as f, pytest.raises(FetchError, match=r"a\.json: timed out$"):
             _ = f.get(f"{server.url}a.json", None)
 
-    def test_dead_proxy(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        with socket.socket() as s:
-            s.bind(("127.0.0.1", 0))
-            port = s.getsockname()[1]
+    def test_dead_proxy(self, monkeypatch: pytest.MonkeyPatch, refused_port: int) -> None:
+        port = refused_port
         monkeypatch.setenv("HTTPS_PROXY", f"http://127.0.0.1:{port}")
 
         with (
@@ -358,6 +347,9 @@ class TestCache:
 
         assert fetcher.refresh(f"{server.url}a.json", path) == b'{"a": 2}'
         assert server.requests[1].target.startswith("/a.json?r=")
+        # Another client of the same fetcher gets the refreshed body, not the first fetch's.
+        assert fetcher.get(f"{server.url}a.json", path) == b'{"a": 2}'
+        assert len(server.requests) == 2
         assert json.loads(Path(path).read_bytes().partition(b"\n")[0])["url"] == f"{server.url}a.json"
 
     def test_refresh_keeps_query(self, server: IndexServer, fetcher: Fetcher) -> None:
@@ -466,10 +458,8 @@ class TestProxy:
 
         assert client.proxy(url) == expected
 
-    def test_bypassed_proxy_not_named(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        with socket.socket() as s:
-            s.bind(("127.0.0.1", 0))
-            port = s.getsockname()[1]
+    def test_bypassed_proxy_not_named(self, monkeypatch: pytest.MonkeyPatch, refused_port: int) -> None:
+        port = refused_port
         monkeypatch.setenv("HTTP_PROXY", "http://proxy.invalid:3128")
         monkeypatch.setenv("NO_PROXY", "127.0.0.0/8")
 

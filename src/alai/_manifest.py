@@ -118,6 +118,14 @@ class UrlSource(Record):
     __slots__ = ("url",)
 
     def __init__(self, url: str) -> None:
+        # Checked here, as the CLI builds one from a REQUIREMENT too. The URL is written to alai.toml and alai.lock and
+        # shown in output, and the client would send the credentials as basic auth, which the docs say it never does.
+        import urllib.parse
+
+        if "@" in urllib.parse.urlsplit(url).netloc:
+            raise ConfigError(
+                f"'{url}' has credentials in it, which alai doesn't send: give a URL readable without them"
+            )
         self.url = url
 
     def __str__(self) -> str:

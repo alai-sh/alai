@@ -255,7 +255,7 @@ class TestColor:
         assert line == "\x1b[37m⠋\x1b[0m \x1b[2mResolving collect\x1b[0m"
         assert len(visible(line)) <= 19
 
-    def test_flag(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_flag(self) -> None:
         _ = main(["--color", "always", "--version"])
 
         assert _output.color == "always"

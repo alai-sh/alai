@@ -7,18 +7,18 @@ alai-core's extractor. The sdist's source and its plugin index lines are kept in
 
 from __future__ import annotations
 
+import collections.abc as _c
 import json
 import os
 import re
 import shutil
-import tempfile
 import typing as _t
 import urllib.parse
 
 from alai_core.pep440 import Version
 
 from ._artifacts import max_unpacked_size
-from ._common import Error, Record, write_atomic
+from ._common import Error, Record, cache_workdir, rename_into_cache, write_atomic
 from ._index import url_dir
 from ._output import debug, trace, warn
 from ._plugins import BUILTIN, EDA_BUILTIN, PluginIndex
@@ -201,8 +201,11 @@ def _source(fetcher: Fetcher, project: Project, release: Release, root: str, tas
     if os.path.isdir(target):
         return target
     task.show(f"{project.name} {release.version}: downloading")
-    os.makedirs(os.path.dirname(target), exist_ok=True)
-    work = tempfile.mkdtemp(dir=root, prefix=".tmp-")
+    try:
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        work = cache_workdir(root)
+    except OSError as e:
+        raise BuiltinError(f"can't write to the cache at {root}: {e.strerror or e}") from e
     try:
         tarball = os.path.join(work, "sdist")
         digest, _ = fetcher.download(release.url, tarball, max_size=_MAX_SDIST_SIZE)
@@ -216,12 +219,7 @@ def _source(fetcher: Fetcher, project: Project, release: Release, root: str, tas
             artifact.extract_sdist(tarball, source, include=project.include, limit=max_unpacked_size(os.environ))
         except (artifact.ExtractError, OSError) as e:
             raise BuiltinError(f"can't extract {project.name} {release.version}: {e}") from e
-        try:
-            os.rename(source, target)
-        except OSError:
-            # Another alai extracted the same release meanwhile.
-            if not os.path.isdir(target):
-                raise
+        rename_into_cache(source, target)
     finally:
         shutil.rmtree(work, ignore_errors=True)
     return target
@@ -256,41 +254,35 @@ def render_lines(collection: Collection, name: str) -> bytes:
 
 def _newest_cached(directory: str) -> tuple[str, bytes] | None:
     """The highest version's cached lines in a project's directory, or None if there are none."""
-    try:
-        names = os.listdir(directory)
-    except OSError:
+    newest = _newest(directory, lambda name: name[: -len(".jsonl")] if name.endswith(".jsonl") else None)
+    if newest is None:
         return None
-    versions: list[Version] = []
-    for file in names:
-        if file.endswith(".jsonl"):
-            try:
-                versions.append(Version(file[: -len(".jsonl")]))
-            except ValueError:
-                continue
-    if not versions:
-        return None
-    newest = max(versions)
     try:
-        with open(os.path.join(directory, f"{newest.text}.jsonl"), "rb") as f:
-            return newest.text, f.read()
+        with open(os.path.join(directory, f"{newest}.jsonl"), "rb") as f:
+            return newest, f.read()
     except OSError:
         return None
 
 
 def _newest_source(directory: str) -> tuple[str, str] | None:
     """The highest version's cached source in a project's directory, as (version, path), or None if there's none."""
+    newest = _newest(directory, lambda name: name if os.path.isdir(os.path.join(directory, name)) else None)
+    return (newest, os.path.join(directory, newest)) if newest is not None else None
+
+
+def _newest(directory: str, version_of: _c.Callable[[str], str | None]) -> str | None:
+    """The highest version among ``directory``'s entries, by the version text ``version_of`` gives each, or None for
+    one that isn't a version; None when there's no directory or no version in it."""
     try:
         names = os.listdir(directory)
     except OSError:
         return None
     versions: list[Version] = []
     for name in names:
-        if os.path.isdir(os.path.join(directory, name)):
+        text = version_of(name)
+        if text is not None:
             try:
-                versions.append(Version(name))
+                versions.append(Version(text))
             except ValueError:
                 continue
-    if not versions:
-        return None
-    newest = max(versions).text
-    return newest, os.path.join(directory, newest)
+    return max(versions).text if versions else None

@@ -13,13 +13,12 @@ import collections.abc as _c
 import concurrent.futures
 import os
 import shutil
-import tempfile
 import threading
 import typing as _t
 
 from alai_core.semver import Version
 
-from ._common import SHA256_RE, ConfigError, Error, Record, worker_threads
+from ._common import SHA256_RE, ConfigError, Error, Record, cache_workdir, rename_into_cache, worker_threads
 from ._output import trace
 
 if _t.TYPE_CHECKING:
@@ -88,8 +87,7 @@ class ArtifactCache:
     def _workdir(self) -> str:
         """A new directory in the cache to download or extract into, for the caller to remove."""
         try:
-            os.makedirs(self.root, exist_ok=True)
-            return tempfile.mkdtemp(dir=self.root, prefix=".tmp-")
+            return cache_workdir(self.root)
         except OSError as e:
             raise ArtifactError(f"can't write to the cache at {self.root}: {e.strerror or e}") from e
 
@@ -172,12 +170,7 @@ class ArtifactCache:
                 if started is not None:
                     started()
                 name, version = extract(tarball, extracted, shown, expected=expected, limit=self._limit)
-            try:
-                os.rename(extracted, target)
-            except OSError:
-                # Another alai extracted the same artifact meanwhile; theirs is as good as ours.
-                if not os.path.isdir(target):
-                    raise
+            rename_into_cache(extracted, target)
         except OSError as e:
             raise ArtifactError(f"can't extract {shown} into the cache: {e.strerror or e}") from e
         trace(f"{name} {version}: extracted to {target}")

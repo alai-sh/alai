@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 from alai_core.semver import Version
-from helpers import lines, lock_table
+from helpers import collection_source, lines, lock_table
 
 from alai import _config
 from alai._cli import main
@@ -504,6 +504,19 @@ class TestSync:
         assert main(["remove", "-q", "--group", "test", "d.d"]) == 0
 
         assert installed(tree(project)) == {"c.c": "dir", "ns.col": f"-> {project}"}
+
+    def test_remove_keeps_a_source_galaxy_depends_on(self, project: Path) -> None:
+        _ = collection_source(project.parent / "dep", name="ns.dep")
+        galaxy(project, {"ns.dep": "*"})
+        _ = (project / "alai.toml").write_text(
+            '[project.sources]\n"ns.dep" = { path = "../dep" }\n\n[project.groups.test]\ncollections = ["ns.dep"]\n'
+        )
+
+        assert main(["remove", "-q", "--group", "test", "ns.dep", "--frozen"]) == 0
+
+        assert (project / "alai.toml").read_text() == (
+            '[project.sources]\n"ns.dep" = { path = "../dep" }\n\n[project.groups.test]\ncollections = []\n'
+        )
 
 
 class TestRunAndEnv:
