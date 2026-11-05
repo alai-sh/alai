@@ -51,7 +51,7 @@ def test_too_large_says_how_to_allow_it(tmp_path: Path) -> None:
     members = collection(tar_file("big", big), files=[listed("big", big)])
 
     message = (
-        r"^ns\.coll 1\.0\.0: can't extract the artifact: it unpacks to more than 32768 bytes; set "
+        r"^ns\.coll 1\.0\.0: the artifact unpacks to more than 32768 bytes, which is too large to extract; set "
         + r"ALAI_MAX_UNPACKED_SIZE to a larger number of bytes, or 0 for no limit, if it's genuine$"
     )
     with pytest.raises(ArtifactError, match=message):

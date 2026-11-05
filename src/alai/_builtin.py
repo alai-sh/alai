@@ -17,7 +17,7 @@ import urllib.parse
 
 from alai_core.pep440 import Version
 
-from ._artifacts import GZIP_MAGIC, max_unpacked_size
+from ._artifacts import max_unpacked_size
 from ._common import Error, Record, write_atomic
 from ._index import url_dir
 from ._output import debug, trace, warn
@@ -204,10 +204,8 @@ def _source(fetcher: Fetcher, project: Project, release: Release, root: str, tas
     os.makedirs(os.path.dirname(target), exist_ok=True)
     work = tempfile.mkdtemp(dir=root, prefix=".tmp-")
     try:
-        tarball = os.path.join(work, "sdist.tar.gz")
-        digest, _ = fetcher.download(
-            release.url, tarball, max_size=_MAX_SDIST_SIZE, magic=GZIP_MAGIC, kind="gzip file, so not an sdist"
-        )
+        tarball = os.path.join(work, "sdist")
+        digest, _ = fetcher.download(release.url, tarball, max_size=_MAX_SDIST_SIZE)
         if release.sha256 is not None and digest != release.sha256:
             raise BuiltinError(
                 f"{release.url} doesn't match the index: its SHA-256 is {digest}, where the index says {release.sha256}"

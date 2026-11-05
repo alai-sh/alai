@@ -31,8 +31,8 @@ create_exception!(
     alai._native,
     HttpError,
     PyException,
-    "A request failed: HttpError(kind, detail), kind one of dns, connect, tls, timeout, redirect, too_large, \
-     not_magic or other."
+    "A request failed: HttpError(kind, detail), kind one of dns, connect, tls, timeout, redirect, too_large \
+     or other."
 );
 
 const MAX_REDIRECTS: usize = 10;
@@ -312,8 +312,7 @@ impl HttpClient {
     }
 
     /// Download `url` to the new file `path`: `(status, reason, redirects followed, SHA-256, size)`. Only a 200
-    /// creates the file. It stops once more than `max_size` bytes arrive (`too_large`), or as soon as the body can't
-    /// start with `magic` (`not_magic`). Retried as `get` is until the body starts; not after, as the file is half
+    /// creates the file. It stops once more than `max_size` bytes arrive (`too_large`). Retried as `get` is until the body starts; not after, as the file is half
     /// written.
     fn download(
         &self,
@@ -321,7 +320,6 @@ impl HttpClient {
         url: &str,
         path: PathBuf,
         max_size: u64,
-        magic: &[u8],
     ) -> PyResult<(u16, String, Vec<Redirect>, String, u64)> {
         py.detach(|| {
             runtime().block_on(async {
@@ -334,24 +332,13 @@ impl HttpClient {
                 let mut out = OpenOptions::new().write(true).create_new(true).open(&path).at(&path)?;
                 let mut digest = Sha256::new();
                 let mut size: u64 = 0;
-                let mut start: Vec<u8> = Vec::with_capacity(magic.len());
                 while let Some(chunk) = response.chunk().await.map_err(|e| describe(&e))? {
                     size += chunk.len() as u64;
                     if size > max_size {
                         return Err(http_error("too_large", max_size.to_string()));
                     }
-                    if start.len() < magic.len() {
-                        let take = (magic.len() - start.len()).min(chunk.len());
-                        start.extend_from_slice(&chunk[..take]);
-                        if !magic.starts_with(&start) {
-                            return Err(http_error("not_magic", ""));
-                        }
-                    }
                     digest.update(&chunk);
                     out.write_all(&chunk).at(&path)?;
-                }
-                if start.len() < magic.len() {
-                    return Err(http_error("not_magic", ""));
                 }
                 let sha256 = digest.finalize().iter().map(|b| format!("{b:02x}")).collect();
                 Ok((200, reason(status), redirects, sha256, size))

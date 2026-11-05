@@ -346,13 +346,9 @@ def read_git_sources(
 def _read_archive(settings: Settings, name: str | None, shown: str, path: str) -> SourceCollection:
     """The collection in the tarball at ``path``, extracted into the artifact cache, by its checksum, if it isn't
     there yet: hashing a tarball costs little, and a tarball already extracted isn't read again."""
-    from ._artifacts import GZIP_MAGIC, ArtifactCache
+    from ._artifacts import ArtifactCache
 
     try:
-        with open(path, "rb") as f:
-            magic = f.read(len(GZIP_MAGIC))
-        if magic != GZIP_MAGIC:
-            raise ConfigError(f"{home_path(path)} isn't a gzip file, so it isn't a collection tarball{_for(name)}")
         cksum = sha256_file(path)
         size = os.path.getsize(path)
     except OSError as e:

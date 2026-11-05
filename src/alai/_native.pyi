@@ -14,7 +14,7 @@ class HttpError(Exception):
     """A request got no usable response: ``(kind, detail)``.
 
     ``kind`` is one of ``dns``, ``connect``, ``tls``, ``timeout`` (``detail`` is empty), ``redirect``, ``too_large``
-    (``detail`` is the limit), ``not_magic`` or ``other``.
+    (``detail`` is the limit) or ``other``.
     """
 
 class HttpClient:
@@ -40,9 +40,7 @@ class HttpClient:
     ) -> tuple[int, str, list[tuple[int, str]], str | None, bytes]:
         """``(status, reason, redirects, ETag, body)``, where ``redirects`` is each redirect followed, as its
         status and the URL it led to."""
-    def download(
-        self, url: str, path: str, max_size: int, magic: bytes, /
-    ) -> tuple[int, str, list[tuple[int, str]], str, int]:
+    def download(self, url: str, path: str, max_size: int, /) -> tuple[int, str, list[tuple[int, str]], str, int]:
         """``(status, reason, redirects, SHA-256, size)``; only a 200 creates ``path``."""
     def proxy(self, url: str, /) -> str | None:
         """The proxy a request to ``url`` goes through, as ``scheme://host:port`` without credentials, or None."""
