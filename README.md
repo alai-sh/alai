@@ -1,5 +1,8 @@
 # alai
 
+[![PyPI](https://img.shields.io/pypi/v/alai-sh)](https://pypi.org/project/alai-sh/)
+[![CI](https://github.com/alai-sh/alai/actions/workflows/ci.yml/badge.svg)](https://github.com/alai-sh/alai/actions/workflows/ci.yml)
+
 A fast package and environment manager for Ansible collections, heavily
 inspired by [uv](https://docs.astral.sh/uv/).
 
