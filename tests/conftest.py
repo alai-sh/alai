@@ -46,12 +46,14 @@ def fetcher() -> _c.Iterator[Fetcher]:
 
 
 @pytest.fixture
-def refused_port() -> _c.Iterator[int]:
-    """A port on 127.0.0.1 that refuses connections for the whole test. The socket stays bound without listening, so
-    another worker's server can't take the port in between, as it could were the socket closed first."""
+def refused_port() -> int:
+    """A port on 127.0.0.1 that refuses connections: one the kernel just handed out, closed again. Keeping the socket
+    bound without listening would hold the port, but macOS then drops the connection attempt instead of refusing it,
+    and the test waits out the connect timeout. Another worker's server taking the port in between is unlikely, as
+    the kernel hands out ephemeral ports from a large range."""
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
-        yield s.getsockname()[1]
+        return s.getsockname()[1]
 
 
 @pytest.fixture
