@@ -11,40 +11,50 @@ description: What's planned for alai but doesn't work yet.
     particular order. Any of it may change, and feedback is welcome in the
     [issue tracker](https://github.com/alai-sh/alai/issues).
 
-## Planned
+I've opened a few issues around some future plans for alai. If you are
+interested or have thoughts on some of these features please post a comment
+to them. Some issues have some of my thoughts and ideas already posted while
+others are just simple placeholders until I get to them.
 
-- **Building collections**: `alai build`, with the collection's
-  metadata in `alai.toml` instead of `galaxy.yml`, so `alai add` and
-  `alai remove` can edit a collection project's dependencies too.
-- **Several ansible-core versions per project**: resolving for one
-  ansible-core version, and named environments for testing a project
-  against several releases. Each environment has its own ansible-core
-  version, groups and collections directory.
-- **Private and authenticated indexes**, with credentials for an index
-  that needs them, or a [tarball](collection-sources.md#a-tarball) URL.
-- **`requirements.yml`**: importing one into `alai.toml` with
-  `alai add -r`, and installing from one with
-  `alai collection install -r`. The import is waiting on how people use
-  the file's `source:` and `signatures:` entries, so if you depend on them,
-  say so in the issue tracker.
-- **A pre-release setting**, to always allow or never allow pre-releases,
-  for the whole project or one collection.
-- **Excluding newer versions**: `--exclude-newer DATE` and an
-  `exclude_newer` setting to resolve only from versions published before a
-  date or a duration ago. Excluding newer versions helps to reproduce an old
-  lock or hold back releases until they've been out a while.
-- **JSON output** for scripts from the other commands that report data,
-  such as `config show`, as `alai find` and `alai collection list` have.
-- **Plugin documentation**: a separate tool that works with alai to show a
-  plugin's full documentation, options and examples as `ansible-doc` does,
-  but without installing its collection first.
-- **Index tool**: a separate tool for setting up an index locally or
-  building the files a custom index needs.
-- **Checking installed collections** against the checksums each one
-  carries for its files, and **cleaning the cache**.
-
-## Not planned yet
-
-- **Roles.** Only collections are installed, but `alai.toml` leaves room to
-  add roles later.
-- **Verifying signatures**, until the index format carries them.
+- **Index authentication** ([#64](https://github.com/alai-sh/alai/issues/64)): Support
+  indexes that require authentication.
+- **Collection project metadata** ([#65](https://github.com/alai-sh/alai/issues/65)):
+  Replace `galaxy.yml` with metadata stored in `alai.toml` for collection based
+  projects. Will allow `alai add`/`alai remove` to manage collection dependencies.
+  Will require build support, see below.
+- **Building collections** ([#66](https://github.com/alai-sh/alai/issues/66)): Adds an
+  `alai build` command that can build a collection using rules and logic defined in
+  alai. Opens up support for other compression methods like Zstandard, and supporting a
+  collection project `alai.toml` over `galaxy.yml`.
+- **Publishing collections** ([#67](https://github.com/alai-sh/alai/issues/67)):
+  Support publishing collections/ taking over the default sync for a collection to
+  Alai. Also includes features like OIDC support and a pre-cursor for supporting
+  signatures and attestation of artifacts.
+- **Manage Ansible and Python deps** ([#68](https://github.com/alai-sh/alai/issues/68)):
+  Provide a mechanism to manage Ansible and other Python dependencies as defined in
+  `alai.toml` or some other metadata file. This might end up delegating to `uv` or some
+  other tool using the generic
+  [pylock.toml](https://packaging.python.org/en/latest/specifications/pylock-toml/) lock
+  file or some other mechanism. A lot of moving parts here but would enable alai to
+  orchestrate the whole environment and take into account the actual Ansible version
+  when downloading dependencies.
+- **Include Python/Bin deps in index** ([#69](https://github.com/alai-sh/alai/issues/69)):
+  Collections do have a way to specify their Python and system dependencies in the
+  collection itself. We could include this data in the index to make it easier to
+  manage. The Python deps might be required for alai to manage the Python deps with
+  Ansible as set out above.
+- **Meta/set collection data** ([#70](https://github.com/alai-sh/alai/issues/70)):
+  Support publicly defined meta/set collections that can provide a range or pinned
+  set of collections under a common name. This would be independent of indexes so that
+  anyone can define a grouping of collections for their use case and share them.
+- **`requirements.yml`** ([#71](https://github.com/alai-sh/alai/issues/71)):
+  Support importing collections from an existing `requirements.yml` into `alai.toml`
+  or just with installing with `alai collection install -r`. Some hairy edge cases
+  around `source` and `signatures` and how to handle them.
+- **Excluding newer versions** ([#72](https://github.com/alai-sh/alai/issues/72)):
+  A way for alai to ignore newly released collections until a set date has
+  passed. Excluding newer versions helps to reproduce an old lock or hold back
+  releases until they've been out a while and vetted by others first.
+- **Signature/attestation** ([#73](https://github.com/alai-sh/alai/issues/73)):
+  Support storing signatures and provide a way for callers to attest an
+  artifact using alai. Most likely requires publishing to be in place already.
