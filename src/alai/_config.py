@@ -26,9 +26,12 @@ from ._common import (
     read_toml,
     string_list,
 )
-from ._output import debug
+from ._output import debug, warn
 
 CONFIG_FILE_NAME = "alai.toml"
+PYPROJECT_FILE_NAME = "pyproject.toml"
+TOOL_PATH = ("tool", "alai")
+"""The table where a project's ``pyproject.toml`` holds what an ``alai.toml`` would, as ``[tool.uv]`` holds ``uv.toml``'s."""
 DEFAULT_INDEX_NAME = "alai"
 DEFAULT_INDEX_URL = "https://index.alai.sh/"
 DEFAULT_PYTHON_INDEX = "https://pypi.org/simple/"
@@ -77,11 +80,12 @@ class Project(Record):
         self, root: str, config_file: str | None, collection_file: str | None = None, near: str | None = None
     ) -> None:
         self.root = root
-        """The directory holding ``alai.toml``, or where discovery started when there's none."""
+        """The directory holding the project's config file, or where discovery started when there's none."""
         self.config_file = config_file
-        """The project's ``alai.toml``, or None when there's no project."""
+        """The project's ``alai.toml``, or the ``pyproject.toml`` whose ``[tool.alai]`` stands in for it, or None
+        when there's no project."""
         self.collection_file = collection_file
-        """The ``galaxy.yml`` beside ``alai.toml`` in a collection project, else None."""
+        """The ``galaxy.yml`` beside the config file in a collection project, else None."""
         self.near = near
         """With no ``alai.toml``, the nearest ``galaxy.yml``, else ``ansible.cfg``, on the way up, for
         ``no_project`` to suggest as the root."""
@@ -392,7 +396,7 @@ def load_settings(
     no_config = overrides.no_config or env_bool(environ, "ALAI_NO_CONFIG")
     if config_file:
         path = _resolve_path(config_file, here)
-        layers.append(_file_layer(read_toml(path), path, Level.EXPLICIT, home))
+        layers.append(_file_layer(read_toml(path), path, path, Level.EXPLICIT, home))
         searched.append(ConfigFile(Level.EXPLICIT, path, read=True))
     elif not no_config:
         levels = [
@@ -408,7 +412,8 @@ def load_settings(
                 if not os.path.isfile(path):
                     searched.append(ConfigFile(level, path, read=False))
                     continue
-                layers.append(_file_layer(read_toml(path), path, level, home))
+                table = project_table(read_toml(path), path) if level is Level.PROJECT else read_toml(path)
+                layers.append(_file_layer(table or {}, path, config_label(path), level, home))
                 searched.append(ConfigFile(level, path, read=True))
                 break
 
@@ -470,11 +475,54 @@ def _check_tree(root: str, collections_dir: str, source: str) -> None:
             )
 
 
-def find_project(start: str | os.PathLike[str]) -> Project:
-    """Find the project root, the nearest directory holding an ``alai.toml``, by walking up from ``start``.
+def is_pyproject(path: str) -> bool:
+    return os.path.basename(path) == PYPROJECT_FILE_NAME
 
-    A ``galaxy.yml`` beside it makes it a collection project. Nothing else marks a root, but with no
-    ``alai.toml``, the nearest ``galaxy.yml``, else ``ansible.cfg``, is kept for the error to suggest.
+
+def config_label(path: str) -> str:
+    """A project config file as messages name it: a ``pyproject.toml`` with its ``[tool.alai]``, so
+    ``project.collections`` there isn't taken for PEP 621's ``[project]``."""
+    return f"{path} [tool.alai]" if is_pyproject(path) else path
+
+
+def project_table(data: dict[str, object], path: str) -> dict[str, object] | None:
+    """What alai reads of a project config file: all of an ``alai.toml``, or a ``pyproject.toml``'s
+    ``[tool.alai]``, None when it has none."""
+    if not is_pyproject(path):
+        return data
+    tool = data.get("tool")
+    if tool is None:
+        return None
+    tool = as_table(tool)
+    if tool is None:
+        raise ConfigError(f"{path}: 'tool' must be a table ([tool.<name>])")
+    alai = tool.get("alai")
+    if alai is None:
+        return None
+    table = as_table(alai)
+    if table is None:
+        raise ConfigError(f"{path}: 'tool.alai' must be a table ([tool.alai])")
+    return table
+
+
+def _has_tool_table(path: str) -> bool:
+    """Whether ``path`` is a ``pyproject.toml`` with a ``[tool.alai]`` table."""
+    if not os.path.isfile(path):
+        return False
+    try:
+        return project_table(read_toml(path), path) is not None
+    except ConfigError as e:
+        # As uv does, one that can't be read is passed over with a warning rather than stopping discovery.
+        warn(f"skipping a pyproject.toml while finding the project root: {e}")
+        return False
+
+
+def find_project(start: str | os.PathLike[str]) -> Project:
+    """Find the project root by walking up from ``start``: the nearest directory holding an ``alai.toml``, or a
+    ``pyproject.toml`` with a ``[tool.alai]`` table, as uv reads ``[tool.uv]``.
+
+    A ``galaxy.yml`` beside it makes it a collection project. Nothing else marks a root, but with neither, the
+    nearest ``galaxy.yml``, else ``ansible.cfg``, is kept for the error to suggest.
     """
     start = os.path.realpath(start)
     galaxy: str | None = None
@@ -483,9 +531,21 @@ def find_project(start: str | os.PathLike[str]) -> Project:
     directory = start
     while True:
         alai_toml = os.path.join(directory, CONFIG_FILE_NAME)
+        pyproject = os.path.join(directory, PYPROJECT_FILE_NAME)
         galaxy_yml = os.path.join(directory, "galaxy.yml")
+        config = None
         if os.path.isfile(alai_toml):
-            return Project(directory, alai_toml, galaxy_yml if os.path.isfile(galaxy_yml) else None)
+            config = alai_toml
+            # As uv, alai.toml wins over [tool.alai] beside it, with a warning. uv also names each field it ignores.
+            if _has_tool_table(pyproject):
+                warn(
+                    f"{home_path(directory)} has both an alai.toml and a pyproject.toml with a [tool.alai] table, "
+                    + "so [tool.alai] is ignored in favor of alai.toml"
+                )
+        elif _has_tool_table(pyproject):
+            config = pyproject
+        if config is not None:
+            return Project(directory, config, galaxy_yml if os.path.isfile(galaxy_yml) else None)
 
         if galaxy is None and os.path.isfile(galaxy_yml):
             galaxy = galaxy_yml
@@ -504,7 +564,10 @@ def no_project(project: Project, why: str) -> ConfigError:
     found in current directory or any parent directory", with a hint naming the directory that's likely the root."""
     message = f"no alai.toml found in {home_path(project.root)} or any directory above it: {why}"
     if project.near is None:
-        hint = "create an alai.toml, which can be empty, in the project's root directory"
+        hint = (
+            "create an alai.toml, which can be empty, in the project's root directory, or add a [tool.alai] table "
+            + "to its pyproject.toml"
+        )
     else:
         directory = home_path(os.path.dirname(project.near))
         if os.path.basename(project.near) == "galaxy.yml":
@@ -539,14 +602,15 @@ def default_cache_dir(environ: _c.Mapping[str, str]) -> str | None:
     return None if home is None else os.path.join(home, ".cache", "alai")
 
 
-def _file_layer(table: _c.Mapping[str, object], path: str, level: Level, home: str | None) -> _Layer:
-    """The settings in a config file.
+def _file_layer(table: _c.Mapping[str, object], path: str, label: str, level: Level, home: str | None) -> _Layer:
+    """The settings in a config file, ``table`` being what alai reads of it and ``label`` how messages name it.
 
     Only the project's own ``alai.toml`` can have ``[project]`` and the manifest's tables, which describe that one
     project. Its manifest keys are checked here and read by ``_project.load_project``. Every other file, including a
     ``--config-file``, holds settings only.
     """
-    source = _Source(level, path, os.path.dirname(path), home)
+    source = _Source(level, label, os.path.dirname(path), home)
+    path = label  # what messages below name the file
     layer = _Layer()
 
     # A quoted key such as "project.collections_dir" is one key, not the table, so it can't name a setting.

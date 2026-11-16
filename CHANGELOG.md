@@ -6,6 +6,14 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- A project can keep alai's configuration in a `[tool.alai]` table in its
+  `pyproject.toml` instead of an `alai.toml`. A `pyproject.toml` with that
+  table marks the project root, and `alai add` and `alai remove` edit it.
+  When both files are in one directory, alai reads `alai.toml` and warns that
+  it ignores `[tool.alai]`.
+
 ## [0.1.0] - 2026-11-05
 
 The first release.

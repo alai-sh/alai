@@ -71,6 +71,49 @@ ignore_requires_ansible = ["some.collection"]
 deploy_target = "prod"
 ```
 
+## In pyproject.toml
+
+When a project already has a `pyproject.toml`, such as a playbook repository
+that also lists its Python tools, alai can read its project file from that
+`pyproject.toml` instead of an `alai.toml`. alai reads the file's
+`[tool.alai]` table and holds it to the same rules as a whole `alai.toml`. Each
+table on this page gains a `tool.alai.` prefix, so `[[index]]` becomes
+`[[tool.alai.index]]` and `[project]` becomes `[tool.alai.project]`:
+
+```toml
+# pyproject.toml
+
+# Read by Python tools such as uv, never by alai
+[project]
+name = "site-playbooks"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["ansible-core>=2.17,<2.19"]
+
+[tool.alai]
+link_mode = "copy"
+
+[tool.alai.project]
+requires_ansible = ">=2.17"
+collections = ["community.general>=9"]
+
+[tool.alai.project.groups.test]
+collections = ["ansible.posix"]
+```
+
+alai never reads PEP 621's top-level `[project]` table, which describes a
+Python package. `alai add` and `alai remove` edit `[tool.alai.project]` and
+leave the rest of the file as it is. The lock file is still `alai.lock`
+beside `pyproject.toml`.
+
+A `pyproject.toml` marks the [project root](projects.md#finding-the-project-root)
+only when it has a `[tool.alai]` table, even if that table is empty. When an
+`alai.toml` is in the same directory, alai reads the `alai.toml` and warns
+that it ignores `[tool.alai]`, as uv does with `uv.toml` and `[tool.uv]`.
+A `pyproject.toml` that alai can't read, such as one with invalid TOML, is
+skipped with a warning while alai looks for the root. User and system config
+files are always `alai.toml`.
+
 ## Settings
 
 | Key | Type | |
