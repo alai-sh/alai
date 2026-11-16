@@ -15,7 +15,17 @@ import time
 from alai_core.toml import Document, TomlEditError
 
 from ._common import ConfigError, check_name_of, home_path, read_toml_document, write_atomic
-from ._config import Settings, no_project, raw_manifest
+from ._config import (
+    CONFIG_FILE_NAME,
+    TOOL_PATH,
+    RawManifest,
+    Settings,
+    config_label,
+    is_pyproject,
+    no_project,
+    project_table,
+    raw_manifest,
+)
 from ._lock import Lock, lock_path, read_lock, write_lock
 from ._manifest import (
     GitSource,
@@ -67,7 +77,7 @@ def add(
     """
     with _editing(settings, group, "add"):
         config, doc = _read(settings, group)
-        path = _array_path(group)
+        path = _array_path(settings, group)
         parsed: list[Requirement] = []
         sources: dict[str, PathSource | UrlSource | GitSource] = {}
         fetched: dict[str, SourceCollection] = {}
@@ -108,7 +118,7 @@ def add(
                 table = {"path": source.path}
                 if source.editable:
                     table["editable"] = True
-            doc.set_table(("project", "sources", name), table)
+            doc.set_table((*_root(settings), "project", "sources", name), table)
         if frozen:
             _write(config, str(doc))
             return True
@@ -150,7 +160,7 @@ def remove(
     ``alai.lock`` is missing or would change, having written nothing."""
     with _editing(settings, group, "remove"):
         config, doc = _read(settings, group)
-        path = _array_path(group)
+        path = _array_path(settings, group)
         for given in names:
             try:
                 name = collection_name(given)
@@ -158,7 +168,7 @@ def remove(
                 raise ConfigError(_by_source(settings, doc, given) or str(e)) from e
             found = [_name_of(v) for v in doc.values(path)]
             if name not in found:
-                raise ConfigError(_not_there(doc, name, group))
+                raise ConfigError(_not_there(settings, doc, name, group))
             doc.remove(path, found.index(name))
             _drop_path_source(settings, doc, name)
         if frozen:
@@ -183,7 +193,7 @@ def _editing(settings: Settings, group: str | None, verb: str) -> _c.Generator[N
     try:
         yield
     except TomlEditError as e:
-        where = "project.collections" if group is None else f"project.groups.{group}.collections"
+        where = ".".join(_array_path(settings, group))
         raise ConfigError(
             f"can't edit {settings.project.config_file} for you ({e}); {verb} the collections in {where} by hand"
         ) from e
@@ -211,7 +221,7 @@ def _lock_and_sync(
     writes ``pyproject.toml`` when the requirement is only spelt differently, and ``alai.lock`` kept as it is.
     """
     started = time.monotonic()
-    raw, manifest = with_root(settings, raw_manifest(doc.data(), config), local=fetched)
+    raw, manifest = with_root(settings, _manifest(settings, doc), local=fetched)
     path = lock_path(settings.project.root)
     existing = read_lock(path)
     if locked and existing is None:
@@ -220,7 +230,7 @@ def _lock_and_sync(
     lock, resolution = resolve_project(settings, manifest, raw, existing, upgrade=upgrade, download=sync)
     finish(doc, lock)
     # Parsed again for what finish changed, with the sources as they were just read rather than read again.
-    raw, manifest = with_root(settings, raw_manifest(doc.data(), config), local=manifest.local)
+    raw, manifest = with_root(settings, _manifest(settings, doc), local=manifest.local)
     lock = Lock(raw, lock.collections, lock.root)
     summary("Resolved", len(lock.collections), time.monotonic() - started, dim=True)
     if locked and not lock_unchanged(existing, manifest, lock):
@@ -249,7 +259,7 @@ def _by_source(settings: Settings, doc: Document, given: str) -> str | None:
     key = given_source(given)
     if key is None:
         return None
-    raw = raw_manifest(doc.data(), "alai.toml")
+    raw = _manifest(settings, doc)
     names = sorted(n for n, table in raw.sources.items() if source_key(table, settings.project.root) == key)
     if not names:
         return f"alai remove takes collection names, such as ns.col, and [project.sources] takes nothing from {given}"
@@ -263,7 +273,7 @@ def _drop_path_source(settings: Settings, doc: Document, name: str) -> None:
     """Remove ``name``'s ``[project.sources]`` entry when it's a directory, a tarball or a git repository and
     nothing lists the collection any more, as ``uv remove`` drops its source. An index pin stays: it also applies to
     what other collections depend on. In a collection project, ``galaxy.yml``'s dependencies list collections too."""
-    raw = raw_manifest(doc.data(), "alai.toml")
+    raw = _manifest(settings, doc)
     source = raw.sources.get(name)
     if source is None or not {"path", "url", "git"} & set(source):
         return
@@ -274,7 +284,7 @@ def _drop_path_source(settings: Settings, doc: Document, name: str) -> None:
         listed += [_name_of(r) for r in read_source_collection(settings.project.collection_file).dependencies]
     if name in listed:
         return
-    doc.remove_key(("project", "sources", name))
+    doc.remove_key((*_root(settings), "project", "sources", name))
 
 
 def _read(settings: Settings, group: str | None) -> tuple[str, Document]:
@@ -300,11 +310,23 @@ def _write(config: str, text: str) -> None:
         raise ConfigError(f"can't write {config}: {e.strerror or e}") from e
 
 
-def _array_path(group: str | None) -> tuple[str, ...]:
+def _root(settings: Settings) -> tuple[str, ...]:
+    """Where alai's keys are in the project's config file: the top of ``alai.toml``, or ``pyproject.toml``'s
+    ``[tool.alai]``."""
+    config = settings.project.config_file
+    return TOOL_PATH if config is not None and is_pyproject(config) else ()
+
+
+def _manifest(settings: Settings, doc: Document) -> RawManifest:
+    config = settings.project.config_file or CONFIG_FILE_NAME
+    return raw_manifest(project_table(doc.data(), config) or {}, config_label(config))
+
+
+def _array_path(settings: Settings, group: str | None) -> tuple[str, ...]:
     if group is None:
-        return ("project", "collections")
+        return (*_root(settings), "project", "collections")
     check_name_of("group", group, "--group")
-    return ("project", "groups", group, "collections")
+    return (*_root(settings), "project", "groups", group, "collections")
 
 
 def _name_of(requirement: str) -> str:
@@ -325,15 +347,15 @@ def _position(names: list[str], name: str) -> int:
     return len(names)
 
 
-def _not_there(doc: Document, name: str, group: str | None) -> str:
+def _not_there(settings: Settings, doc: Document, name: str, group: str | None) -> str:
     where = "project.collections" if group is None else f"group '{group}'"
     message = f"{name} isn't in {where}"
     places: list[str] = []
-    if group is not None and name in [_name_of(v) for v in doc.values(("project", "collections"))]:
+    if group is not None and name in [_name_of(v) for v in doc.values(_array_path(settings, None))]:
         places.append(f"project.collections (try: alai remove {name})")
-    for other in sorted(raw_manifest(doc.data(), "alai.toml").groups):
+    for other in sorted(_manifest(settings, doc).groups):
         if other == group:
             continue
-        if name in [_name_of(v) for v in doc.values(("project", "groups", other, "collections"))]:
+        if name in [_name_of(v) for v in doc.values((*_root(settings), "project", "groups", other, "collections"))]:
             places.append(f"group '{other}' (try: alai remove {name} --group {other})")
     return message + (f"; it's in {', '.join(places)}" if places else "")

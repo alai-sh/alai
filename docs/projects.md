@@ -295,7 +295,13 @@ For alai to manage a project, it must find the project's root. The root
 decides where the lock file is created and where collections are installed.
 To find the root, alai walks up from the current directory towards the
 filesystem root, or from `--project` or `ALAI_PROJECT` when given. The root
-is the nearest directory holding an `alai.toml`, even an empty one.
+is the nearest directory holding either:
+
+- `alai.toml`, even an empty one, or
+- `pyproject.toml` with a `[tool.alai]` table
+
+This is describe in further detail at
+[alai.toml](alai-toml.md#in-pyprojecttoml).
 
 Nothing else marks a project, so a subdirectory or integration test target
 with its own `ansible.cfg` is still part of the project above it.
@@ -324,8 +330,8 @@ hint: ~/my_col has a galaxy.yml. To make it a collection project, create an empt
 `--project` only changes where alai starts looking, and doesn't create an
 `alai.toml`.
 
-alai reads its settings only from `alai.toml`, and doesn't read Ansible's
-settings from `ansible.cfg`.
+alai reads its settings only from `alai.toml` or `[tool.alai]`, and doesn't
+read Ansible's settings from `ansible.cfg`.
 
 Discovery is the same with `--no-config` and `--config-file`, as those
 arguments only change which settings are read, not where the project is.

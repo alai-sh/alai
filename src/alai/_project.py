@@ -12,7 +12,7 @@ import re
 import typing as _t
 
 from ._common import ConfigError, Record, home_path, inside, no_group, read_toml, selects, sha256_file
-from ._config import RawManifest, Settings, no_project, raw_manifest
+from ._config import RawManifest, Settings, config_label, no_project, project_table, raw_manifest
 from ._lock import (
     ArchiveSource,
     ArchiveUrlSource,
@@ -85,7 +85,8 @@ def load_project(settings: Settings, why: str) -> tuple[RawManifest, Manifest]:
         raise no_project(project, why)
     raw = settings.manifest
     if raw is None:
-        raw = raw_manifest(read_toml(project.config_file), project.config_file)
+        path = project.config_file
+        raw = raw_manifest(project_table(read_toml(path), path) or {}, config_label(path))
     return with_root(settings, raw)
 
 

@@ -32,6 +32,31 @@ def toml(project: Path) -> str:
     return (project / "alai.toml").read_text()
 
 
+class TestPyproject:
+    """A pyproject.toml's [tool.alai] is edited as alai.toml is, and the rest of the file is left as it is."""
+
+    PYPROJECT = '[project]\nname = "x"\n\n[tool.ruff]\nline-length = 100\n\n[tool.alai]\n'
+
+    def test_add_and_remove(self, project: Path) -> None:
+        pyproject = project / "pyproject.toml"
+        _ = pyproject.write_text(self.PYPROJECT)
+
+        assert main(["add", "-q", "a.a"]) == 0
+        assert main(["add", "-q", "--group", "test", "c.c"]) == 0
+
+        assert pyproject.read_text() == self.PYPROJECT + (
+            '\n[tool.alai.project]\ncollections = [\n    "a.a>=2.0.0",\n]\n'
+            + '\n[tool.alai.project.groups.test]\ncollections = [\n    "c.c>=1.0.0",\n]\n'
+        )
+        assert installed_versions(project / "collections") == {"a.a": "2.0.0", "b.b": "1.1.0", "c.c": "1.0.0"}
+        assert not (project / "alai.toml").exists()
+
+        assert main(["remove", "-q", "a.a"]) == 0
+
+        assert '"a.a' not in pyproject.read_text()
+        assert installed_versions(project / "collections") == {}  # test isn't a default group
+
+
 class TestAdd:
     def test_writes_the_locked_lower_bound(self, project: Path, capsys: pytest.CaptureFixture[str]) -> None:
         write(project)

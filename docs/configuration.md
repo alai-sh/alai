@@ -23,7 +23,7 @@ settings can be set and how they combine.
 
 | Level | Location | Used when |
 |---|---|---|
-| Project | `alai.toml` at the [project root](projects.md#finding-the-project-root) | The project root has one |
+| Project | `alai.toml` at the [project root](projects.md#finding-the-project-root), else `[tool.alai]` in its [`pyproject.toml`](alai-toml.md#in-pyprojecttoml) | The project root has one |
 | User | `$XDG_CONFIG_HOME/alai/alai.toml`, default `~/.config/alai/alai.toml` | The file exists |
 | System | The first `<dir>/alai/alai.toml` for each `<dir>` in `$XDG_CONFIG_DIRS` (default `/etc/xdg`), else `/etc/alai/alai.toml` | The file exists |
 

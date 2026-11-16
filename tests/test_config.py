@@ -101,13 +101,87 @@ class TestFindProject:
         assert find_project(tmp_path / "col" / "tests" / "integration" / "targets" / "t").near == str(galaxy)
 
 
+class TestPyproject:
+    def test_tool_alai_marks_the_root(self, tmp_path: Path) -> None:
+        config = write_file(tmp_path / "repo" / "pyproject.toml", '[project]\nname = "x"\n\n[tool.alai]\n')
+        galaxy = write_file(tmp_path / "repo" / "galaxy.yml")
+        (tmp_path / "repo" / "sub").mkdir()
+
+        project = find_project(tmp_path / "repo" / "sub")
+
+        assert project.root == str(tmp_path / "repo")
+        assert project.config_file == str(config)
+        assert project.collection_file == str(galaxy)
+
+    def test_without_tool_alai_not_a_root(self, tmp_path: Path) -> None:
+        config = write_file(tmp_path / "repo" / "alai.toml")
+        write_file(tmp_path / "repo" / "py" / "pyproject.toml", '[project]\nname = "x"\n\n[tool.ruff]\n')
+
+        assert find_project(tmp_path / "repo" / "py").config_file == str(config)
+
+    def test_alai_toml_wins(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+        config = write_file(tmp_path / "alai.toml")
+        write_file(tmp_path / "pyproject.toml", '[tool.alai]\nlink_mode = "copy"\n')
+
+        assert find_project(tmp_path).config_file == str(config)
+        assert "has both an alai.toml and a pyproject.toml with a [tool.alai] table" in capsys.readouterr().err
+
+    @pytest.mark.parametrize(
+        ("text", "problem"),
+        [
+            ("not toml", "invalid TOML"),
+            ("tool = 1\n", "'tool' must be a table"),
+            ("[tool]\nalai = 1\n", "'tool.alai' must be a table"),
+        ],
+    )
+    def test_unreadable_skipped(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str], text: str, problem: str
+    ) -> None:
+        """As uv does, a pyproject.toml alai can't read is passed over with a warning."""
+        config = write_file(tmp_path / "alai.toml")
+        write_file(tmp_path / "sub" / "pyproject.toml", text)
+
+        assert find_project(tmp_path / "sub").config_file == str(config)
+        err = capsys.readouterr().err
+        assert "skipping a pyproject.toml while finding the project root" in err
+        assert problem in err
+
+    def test_settings_and_manifest(self, tmp_path: Path, environ: dict[str, str]) -> None:
+        """[tool.alai] holds what alai.toml would, and PEP 621's [project] is left to Python's tools."""
+        config = write_file(
+            tmp_path / "pyproject.toml",
+            '[project]\nname = "x"\ndependencies = ["ansible-core"]\n\n'
+            + '[tool.alai]\nlink_mode = "copy"\n\n[tool.alai.project]\ncollections = ["a.a"]\n',
+        )
+
+        settings = load(tmp_path, environ)
+
+        assert settings.link_mode is LinkMode.COPY
+        assert settings.sources["link_mode"] == f"{config} [tool.alai]"
+        assert settings.config_files == (str(config),)
+        assert settings.manifest is not None
+        assert settings.manifest.collections == ["a.a"]
+
+    def test_error_names_the_table(self, tmp_path: Path, environ: dict[str, str]) -> None:
+        write_file(tmp_path / "pyproject.toml", "[tool.alai.project]\ncollections = 1\n")
+
+        with pytest.raises(ConfigError, match=r"pyproject.toml \[tool.alai\]: 'project.collections' must be"):
+            load(tmp_path, environ)
+
+    def test_user_config_not_read_from_pyproject(self, tmp_path: Path, home: Path, environ: dict[str, str]) -> None:
+        write_file(home / ".config" / "alai" / "pyproject.toml", '[tool.alai]\nlink_mode = "copy"\n')
+
+        assert load(tmp_path, environ).link_mode is LinkMode.AUTO
+
+
 class TestNoProject:
     def test_no_hint_file(self, tmp_path: Path) -> None:
         error = no_project(find_project(tmp_path), "it says why")
 
         assert str(error) == (
             f"no alai.toml found in {tmp_path} or any directory above it: it says why\n\n"
-            + "hint: create an alai.toml, which can be empty, in the project's root directory"
+            + "hint: create an alai.toml, which can be empty, in the project's root directory, or add a [tool.alai] "
+            + "table to its pyproject.toml"
         )
 
     def test_galaxy_yml(self, tmp_path: Path) -> None:
